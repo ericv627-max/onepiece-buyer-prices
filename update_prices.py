@@ -128,8 +128,13 @@ def describe_printing(card_name):
     return ", ".join(printing) if printing else "Regular"
 
 
-# Sealed product types, checked in order: the first phrase found in the
-# product name wins, so "Booster Box Case" is a Case, not a Booster Box.
+# Sealed product types. Patterns are checked first, then phrases in order: the
+# first one found in the product name wins, so "Booster Box Case" is a Case, not
+# a Booster Box. Anything with "pack" left over is a promotional or event pack.
+SEALED_PATTERNS = [
+    (r"^extra booster\b.*\bbox$", "Booster Box"),
+    (r"^extra booster\b.*\bpack$", "Booster Pack"),
+]
 SEALED_TYPES = [
     ("case", "Case"),
     ("booster box", "Booster Box"),
@@ -139,18 +144,24 @@ SEALED_TYPES = [
     ("starter deck", "Starter Deck"),
     ("ultra deck", "Starter Deck"),
     ("deck set", "Deck Set"),
+    ("illustration box", "Illustration Box"),
     ("premium", "Premium Collection"),
     ("gift", "Gift Collection"),
     ("collection", "Collection"),
     ("tin", "Tin"),
     ("bundle", "Bundle"),
+    ("battle kit", "Battle Kit"),
     ("set", "Set"),
+    ("pack", "Promo Pack"),
 ]
 
 
 def sealed_type(name):
     """Name a sealed product's type from its TCGplayer name, e.g. "Booster Box"."""
-    lowered = name.lower()
+    lowered = name.lower().strip()
+    for pattern, label in SEALED_PATTERNS:
+        if re.search(pattern, lowered):
+            return label
     for phrase, label in SEALED_TYPES:
         if re.search(rf"\b{re.escape(phrase)}\b", lowered):
             return label
@@ -251,6 +262,15 @@ def build_rows(groups):
     return rows
 
 
+def product_language(name):
+    """
+    tcgcsv's One Piece category is the English game, but it also lists a few
+    Japanese-version items (like the anniversary sets) and says so in the name.
+    Label those honestly; everything else in the category is English.
+    """
+    return "Japanese" if re.search(r"\bjapanese\b", name, re.IGNORECASE) else "English"
+
+
 def make_row(product, set_name, price):
     """Combine one product and (optionally) one price row into a card row."""
     card_number = get_extended_value(product, "Number")
@@ -271,9 +291,7 @@ def make_row(product, set_name, price):
         "sub_type": sub_type,
         "kind": "sealed" if sealed else "card",
         "product_type": sealed_type(product["name"]) if sealed else "Single Card",
-        # tcgcsv's One Piece category is the English game; Japanese cards
-        # aren't in it. Kept as a field so Japanese can be added later.
-        "language": "English",
+        "language": product_language(product["name"]),
         "name": product["name"],
         "set_name": set_name,
         "card_number": card_number or "",

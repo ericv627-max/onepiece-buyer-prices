@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main id="main" className="wrap">{children}</main>
           <footer className="wrap footer">
             VENDR · Prices from TCGplayer via tcgcsv.com, updated daily
-            {meta.updatedAt ? ` (last ${meta.updatedAt.replace("T", " ").slice(0, 16)} UTC)` : ""}. English cards only for now. Not affiliated with TCGplayer or Bandai.
+            {meta.updatedAt ? ` (last ${meta.updatedAt.replace("T", " ").slice(0, 16)} UTC)` : ""}. Mostly English-language products. Not affiliated with TCGplayer or Bandai.
           </footer>
         </RatesProvider>
       </body>

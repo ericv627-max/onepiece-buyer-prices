@@ -205,7 +205,7 @@ export function Browser({ mode, scope }: { mode: Mode; scope?: SetInfo }) {
                   {facets.languages.map(([v, n]) => (
                     <label key={v} className="check"><input type="checkbox" checked={filters.languages.includes(v)} onChange={() => toggle("lang", v)} /> {v}<span className="n">{n.toLocaleString()}</span></label>
                   ))}
-                  <label className="check disabled" title="No Japanese price source yet"><input type="checkbox" disabled /> Japanese<span className="n">soon</span></label>
+                  <p className="help">Only a few Japanese-version items are on TCGplayer’s English listing. Full Japanese card prices need another source.</p>
                 </fieldset>
                 <fieldset>
                   <legend>Product type</legend>

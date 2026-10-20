@@ -30,12 +30,27 @@ jobs:
               "Romance Dawn - Booster Pack": "Booster Pack",
               "Starter Deck 1: Straw Hat Crew": "Starter Deck",
               "One Piece Card Game Premium Card Collection": "Premium Collection",
+              "Extra Booster: One Piece Heroines Edition Box": "Booster Box",
+              "Extra Booster: One Piece Heroines Edition Pack": "Booster Pack",
+              "One Piece Card Game Illustration Box Vol.1": "Illustration Box",
+              "Judge Pack Vol. 3": "Promo Pack",
+              "Special DON!! Card Pack DP-11": "Promo Pack",
+              "The Time of Battle - Release Event Pack": "Promo Pack",
+              "Sealed Battle Kit Vol. 1": "Battle Kit",
+              "Starting Lineup": "Other Sealed",
               "Something Unusual": "Other Sealed",
           }
           for name, expected in cases.items():
               got = sealed_type(name)
               assert got == expected, f"{name!r}: expected {expected!r}, got {got!r}"
           print("sealed_type OK")
+
+          from update_prices import product_language
+          assert product_language("Marco (Japanese 1st Anniversary Set)") == "Japanese"
+          assert product_language("One Piece Japanese Version 2nd Anniversary Set (Sealed Promotional Bundle)") == "Japanese"
+          assert product_language("Monkey.D.Luffy (003) (Parallel)") == "English"
+          assert product_language("English Version 1st Anniversary Set") == "English"
+          print("product_language OK")
           EOF
 
       - name: Old site still builds from the saved data
