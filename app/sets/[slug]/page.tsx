@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getMeta, getProducts, getSet, getSets } from "@/lib/data";
+import { getMeta, getSet, getSetProducts, getSets } from "@/lib/data";
 import { shortDate } from "@/lib/format";
 import { Browser } from "@/components/browser";
 import { SetAnalytics } from "@/components/set-analytics";
@@ -24,7 +24,7 @@ export default async function SetPage({ params }: Props) {
   const set = getSet((await params).slug);
   if (!set) notFound();
   const meta = getMeta();
-  const products = getProducts().filter(p => p.set === set.name);
+  const products = getSetProducts(set.name);
   const today = new Date().toISOString().slice(0, 10);
   const status = !set.released ? "Release date unknown" : set.released > today ? `Upcoming · releases ${shortDate(set.released)}` : `Released ${shortDate(set.released)}`;
 

@@ -1,8 +1,12 @@
 // Build-time data: reads the files update_prices.py saves in data/.
 // Only server code imports this (it uses the file system).
+//
+// Everything here is computed ONCE per build process and shared by all ~8,000
+// pages. (React's cache() only lasts for a single page render, which meant the
+// whole catalog was re-read and re-processed for every page.)
 import fs from "node:fs";
 import path from "node:path";
-import { cache } from "react";
+import { shardOf, type Shard } from "./history";
 import type { Meta, PricePoint, Product, SetInfo } from "./types";
 
 const DATA = path.join(process.cwd(), "data");
@@ -30,6 +34,8 @@ type CatalogRow = {
   market_price: number | null;
 };
 
+type Snapshot = { date: string; prices: Record<string, [number | null, number | null]> };
+
 function readJson<T>(file: string, fallback: T): T {
   try {
     return JSON.parse(fs.readFileSync(file, "utf8")) as T;
@@ -44,10 +50,12 @@ export function slugify(text: string): string {
 
 const round = (n: number) => Math.round(n * 100) / 100;
 
-const historyFiles = cache((): string[] =>
-  fs.existsSync(HISTORY) ? fs.readdirSync(HISTORY).filter(f => f.endsWith(".json")).sort() : []);
+let memoFiles: string[] | null = null;
+function historyFiles(): string[] {
+  return (memoFiles ??= fs.existsSync(HISTORY) ? fs.readdirSync(HISTORY).filter(f => f.endsWith(".json")).sort() : []);
+}
 
-const loadAll = cache(() => {
+function buildAll() {
   const catalog = readJson<{ updated: string; updated_at?: string; cards: CatalogRow[] }>(
     path.join(DATA, "catalog.json"), { updated: "", cards: [] });
   const setsFile = readJson<{ sets: { id: number; name: string; code: string; released: string | null }[] }>(
@@ -58,8 +66,7 @@ const loadAll = cache(() => {
   // The arrows compare with the latest saved day before the catalog's day.
   const earlier = historyFiles().filter(f => f.replace(".json", "") < catalog.updated);
   const previous = earlier.length
-    ? readJson<{ date: string; prices: Record<string, [number | null, number | null]> }>(
-        path.join(HISTORY, earlier[earlier.length - 1]), { date: "", prices: {} })
+    ? readJson<Snapshot>(path.join(HISTORY, earlier[earlier.length - 1]), { date: "", prices: {} })
     : null;
 
   const released = new Map(setsFile.sets.map(s => [s.name, s.released]));
@@ -92,10 +99,18 @@ const loadAll = cache(() => {
     };
   });
 
+  // Group once, so building each set (and each product page) doesn't scan every product.
+  const bySet = new Map<string, Product[]>();
+  const byNumber = new Map<string, Product[]>();
+  for (const p of products) {
+    (bySet.get(p.set) ?? bySet.set(p.set, []).get(p.set)!).push(p);
+    if (p.kind === "card" && p.number) (byNumber.get(p.number) ?? byNumber.set(p.number, []).get(p.number)!).push(p);
+  }
+
   // Every set tcgcsv lists gets a page, even before its products appear,
   // so notifications about upcoming sets always have somewhere to go.
   const sets: SetInfo[] = setsFile.sets.map(s => {
-    const items = products.filter(p => p.set === s.name);
+    const items = bySet.get(s.name) ?? [];
     const top = items.filter(p => p.image).sort((a, b) => (b.market ?? 0) - (a.market ?? 0))[0];
     return {
       id: s.id,
@@ -118,31 +133,41 @@ const loadAll = cache(() => {
     rates: ratesFile,
   };
 
-  return { products, sets, meta, byId: new Map(products.map(p => [p.id, p])) };
-});
+  return { products, sets, meta, bySet, byNumber, byId: new Map(products.map(p => [p.id, p])), setBySlug: new Map(sets.map(s => [s.slug, s])) };
+}
+
+let memoAll: ReturnType<typeof buildAll> | null = null;
+const loadAll = () => (memoAll ??= buildAll());
 
 export const getProducts = () => loadAll().products;
 export const getSets = () => loadAll().sets;
 export const getMeta = () => loadAll().meta;
 export const getProduct = (id: string) => loadAll().byId.get(id) ?? null;
-export const getSet = (slug: string) => loadAll().sets.find(s => s.slug === slug) ?? null;
+export const getSet = (slug: string) => loadAll().setBySlug.get(slug) ?? null;
+export const getSetProducts = (setName: string) => loadAll().bySet.get(setName) ?? [];
 
-// Every saved day's price for one product, oldest first. Days where the
-// product wasn't listed are left out rather than filled in.
-export const getHistory = cache((id: string): PricePoint[] => {
-  const points: PricePoint[] = [];
+// Every saved day's price for every product, read once. Days where a product
+// wasn't listed are left out rather than filled in.
+let memoHistory: Map<string, PricePoint[]> | null = null;
+function loadHistory() {
+  if (memoHistory) return memoHistory;
+  const map = new Map<string, PricePoint[]>();
   for (const file of historyFiles()) {
-    const snap = readJson<{ date: string; prices: Record<string, [number | null, number | null]> }>(
-      path.join(HISTORY, file), { date: "", prices: {} });
-    const price = snap.prices[id];
-    if (price) points.push({ date: snap.date, low: price[0], market: price[1] });
+    const snap = readJson<Snapshot>(path.join(HISTORY, file), { date: "", prices: {} });
+    for (const [id, [low, market]] of Object.entries(snap.prices)) {
+      let points = map.get(id);
+      if (!points) map.set(id, (points = []));
+      points.push({ date: snap.date, low, market });
+    }
   }
-  return points;
-});
+  return (memoHistory = map);
+}
 
-// Other printings of the same card number (alternate arts, foils, reprints).
-// Matched only on the exact card number, never on the character's name.
-export function getVariants(product: Product): Product[] {
-  if (product.kind !== "card" || !product.number) return [];
-  return getProducts().filter(p => p.number === product.number && p.id !== product.id);
+// The saved days of every product in one history file (see lib/history.ts).
+export function getHistoryShard(shard: number): Shard {
+  const out: Shard = {};
+  for (const [id, points] of loadHistory()) {
+    if (shardOf(id) === shard) out[id] = points.map(p => [p.date, p.low, p.market]);
+  }
+  return out;
 }

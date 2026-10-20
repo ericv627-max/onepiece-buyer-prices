@@ -7,7 +7,7 @@ import { Heart } from "./heart";
 import { ProductImage } from "./product-image";
 
 export function productHref(p: Product) {
-  return `/product/${encodeURIComponent(p.id)}`;
+  return `/product?id=${encodeURIComponent(p.id)}`;
 }
 
 function details(p: Product) {
