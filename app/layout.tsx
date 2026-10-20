@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./portfolio.css";
 import { Nav } from "@/components/nav";
 import { RatesProvider } from "@/components/money";
 import { getMeta } from "@/lib/data";

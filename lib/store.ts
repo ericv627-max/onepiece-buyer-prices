@@ -85,3 +85,6 @@ export function rememberSearch(query: string) {
 // ---------- Currency and name ----------
 export const CURRENCY_KEY = "vendr.currency";
 export const NAME_KEY = "vendr.name";
+
+// Read a saved value right now (for actions that change it).
+export const readStored = read;

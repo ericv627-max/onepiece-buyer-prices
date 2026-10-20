@@ -2,119 +2,77 @@
 
 **Price it. Stack it. Flip it.**
 
-Search any One Piece card and see what a buyer should offer for it.
+One Piece Card Game prices, sets and sealed products, updated daily from TCGplayer.
+Search any card or sealed product, see what a buyer should offer, track price history,
+keep a wishlist, and run a portfolio of what you own.
 
-- **Buyer's minimum** = TCGplayer lowest listing price × 0.80
-- **Buyer's maximum** = TCGplayer lowest listing price × 0.90
-- The market price is shown for reference.
-- Prices reflect **all conditions** (not just Near Mint).
+- **Buyer pays** = 80% to 90% of TCGplayer's lowest listing. The market price (recent sales) is shown for reference.
+- Prices reflect all conditions, not just Near Mint.
+- Prices are in US dollars, with a currency picker that converts using the day's exchange rates.
 
-Data comes from [tcgcsv.com](https://tcgcsv.com), a free nightly copy of
-TCGplayer's prices (One Piece is category 68 there). We never scrape
-tcgplayer.com directly.
+## What's in the app
 
-## What's in here
-
-| File | What it does |
+| Page | What it does |
 |---|---|
-| `update_prices.py` | Downloads every One Piece set, card, and price into `prices.db` |
-| `build_site.py` | Does the buyer math and builds the website into the `site` folder |
-| `static/index.html` | The search page you see in the browser |
-| `vercel.json` | Tells Vercel how to build the site |
-| `.github/workflows/nightly-update.yml` | Asks Vercel to rebuild every night so prices stay fresh |
+| Home | Big search with the rotating card hint, category chips (cards, sets, sealed), recent searches |
+| Products | Grid or list, sort, filters (set, language, product type, rarity, price). Everything stays in the address bar |
+| Product (`/product?id=...`) | One page for every card and sealed product: prices, price history chart, other printings, wishlist, add to portfolio |
+| Sets and set pages | Every release, newest first, with scoped search and set analytics |
+| Wishlist | Saved on this device, one entry per product variant |
+| Portfolio | Holdings with quantities and what you paid, total value, daily change, gain or loss, a value graph, breakdown, most valuable, market trends, backup and restore |
 
-`prices.db` and `site/` get created when you run the scripts. They are not
-saved in git.
+Wishlist and portfolio are saved in the browser until accounts exist (Google sign-in is the next step).
 
-You only need Python 3.9 or newer. No `pip install` needed.
+## Where the data comes from
 
-## How the website works
+[tcgcsv.com](https://tcgcsv.com) is a free daily copy of TCGplayer's catalog and prices
+(One Piece is category 68). It updates once a day, around 20:00 UTC. We never scrape tcgplayer.com.
 
-1. `update_prices.py` downloads the prices into a SQLite database.
-2. `build_site.py` reads the database, works out the buyer offers, and writes
-   `site/cards.json` plus the search page.
-3. The search page downloads `cards.json` once and searches it in your
-   browser. No server code runs; the site is just two files.
+Limits worth knowing:
 
-On Vercel, steps 1 and 2 run every night (see "Hosting on Vercel" below).
+- **English only, mostly.** The category is the English game. It also lists a few Japanese-version items (the anniversary sets), which VENDR labels as Japanese. Full Japanese card prices need another source.
+- **No sales data.** tcgcsv gives prices, not individual sales, so there is no sales volume and VENDR doesn't estimate any.
+- **History starts on Oct 20, 2026.** tcgcsv withdrew its price archive, so earlier days can't be rebuilt. Charts fill in one point per day.
 
-## Trying it on your own computer
+## How it works
 
-```bash
-python update_prices.py      # about 1-2 minutes, there are 80+ sets
-python build_site.py
-python -m http.server --directory site 8000
+1. A GitHub job (`.github/workflows/nightly-update.yml`) runs every day at 21:30 UTC. It runs `update_prices.py`, which downloads everything and saves:
+   - `data/catalog.json`: every product with today's prices
+   - `data/history/<date>.json`: that day's prices, kept forever
+   - `data/sets.json`: every set with its release date
+   - `data/rates.json`: exchange rates
+2. It checks the download is complete, commits those files, and Vercel rebuilds the site from the commit. Vercel never downloads prices itself.
+3. The site is a static Next.js export (`next build` writes `out/`). Pages read the saved files at build time:
+   - `/data/index.json`: the catalog the browser downloads once and searches locally
+   - `/data/h/00.json ... 63.json`: price history in 64 small files, so a page loads only the slice it needs
+4. Everything else (search, filters, wishlist, portfolio) runs in the browser.
+
+## Working on it
+
+```
+npm install
+npm run dev          # http://localhost:3000
+npm test             # portfolio maths (Node's built-in test runner)
+npx tsc --noEmit     # type check
+npm run build        # writes out/
 ```
 
-Then open http://localhost:8000. (On a Mac, type `python3` instead of `python`.)
+Pushing to any branch runs the **Check** workflow (Python checks, tests, type check, build).
+You can run **Nightly price update** by hand from the Actions tab on any branch.
 
-Search tips:
-- Every word must match, so `luffy op05` finds Luffy cards from OP05, and
-  `zoro manga` finds Zoro manga arts.
-- `alt art` finds alternate arts, including older sets where TCGplayer
-  calls them "Parallel".
-- You can type a card number like `OP01-001`.
-- The address bar keeps your search, so you can bookmark or share it.
+### Files
 
-The search includes every single card, DON!! cards and promos. Sealed
-products like booster boxes are left out.
+- `update_prices.py`: downloads prices; names sealed product types and languages
+- `lib/portfolio.ts` + `lib/portfolio.test.ts`: portfolio maths, tested
+- `lib/data.ts`: build-time data layer (computed once per build)
+- `components/`, `app/`: the pages
+- `app/globals.css`, `app/portfolio.css`: the design system (tokens at the top)
 
-## Hosting on Vercel
+### Changing the buyer percentages
 
-One-time setup:
+Edit `BUYER_MIN_PERCENT` and `BUYER_MAX_PERCENT` in `lib/data.ts`, then push.
 
-1. **Import the repo.** On vercel.com: Add New → Project → pick this GitHub
-   repo → Deploy. `vercel.json` already has the build settings, so leave
-   everything else as it is.
-2. **Make a deploy hook.** In the Vercel project: Settings → Git → Deploy
-   Hooks. Name it `nightly`, branch `main`, and click Create. Copy the link.
-3. **Give the hook to GitHub.** In the GitHub repo: Settings → Secrets and
-   variables → Actions → New repository secret. Name: `VERCEL_DEPLOY_HOOK`,
-   value: the link you copied. Keep this link private; anyone who has it
-   can trigger rebuilds.
-4. **Test it.** In the GitHub repo: Actions → Nightly price update → Run
-   workflow. A new deployment should show up on Vercel within a minute.
+### If a name shows up as a printing
 
-After that, the site rebuilds every night at 21:30 UTC, after tcgcsv
-updates. Pushing new code to `main` also rebuilds it.
-
-## What the "printing" label means
-
-The label comes from the parts of the TCGplayer card name in (parentheses)
-or [brackets], like `(Alternate Art)`, `(Manga)`, `(SP)` or
-`(Judge Pack Vol. 2)`. A card with none of these shows **Regular**. A
-**Foil** tag shows when TCGplayer lists that card as foil.
-
-Some parentheses are part of the character's name, like `Mr.3 (Galdino)`.
-These are listed in `NAME_LABELS` in `update_prices.py`. If a nickname shows
-up as a printing on the website, add it to that list and push the change.
-
-## How the database is laid out
-
-- `cards`: one row per card printing with today's prices. A card can have more
-  than one row if TCGplayer prices Normal and Foil separately.
-- `price_history`: a copy of each day's prices, for the 30-day median upgrade.
-- `info`: remembers the last update date for the page.
-
-Want to look inside? Install [DB Browser for SQLite](https://sqlitebrowser.org)
-and open `prices.db`.
-
-## Changing the buyer percentages
-
-Open `build_site.py` and change these two lines near the top, then push:
-
-```python
-BUYER_MIN_PERCENT = 0.80
-BUYER_MAX_PERCENT = 0.90
-```
-
-The note on the page updates by itself.
-
-## Future upgrades (not built yet)
-
-1. **30-day median.** Each Vercel build starts fresh, so `price_history`
-   only ever holds one day there. To build up 30 days, the nightly job needs
-   somewhere to keep each day's prices, for example by saving a small daily
-   file into the repo. Then `build_site.py` can work out the median.
-2. **TCG API Pro plan.** Gives Near Mint–only prices and real sales data,
-   so offers wouldn't have to mix all conditions together.
+Some parentheses in TCGplayer names are part of a character's name, like `Mr.3 (Galdino)`.
+These are listed in `NAME_LABELS` in `update_prices.py`. Add new ones there.

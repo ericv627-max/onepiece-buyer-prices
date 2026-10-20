@@ -38,8 +38,19 @@ jobs:
       - name: Download today's prices
         run: python update_prices.py
 
-      - name: Check the site builds from them
-        run: python build_site.py
+      - name: Sanity-check the download
+        # A partial or empty reply from tcgcsv must never be saved and deployed.
+        run: |
+          python - <<'EOF'
+          import json
+          cards = json.load(open("data/catalog.json"))["cards"]
+          priced = sum(1 for c in cards if c["market_price"] is not None)
+          assert len(cards) > 5000, f"Only {len(cards)} products downloaded; not saving"
+          assert priced > 3000, f"Only {priced} products have a price; not saving"
+          sets = json.load(open("data/sets.json"))["sets"]
+          assert len(sets) > 50, f"Only {len(sets)} sets downloaded; not saving"
+          print(f"{len(cards)} products ({priced} priced), {len(sets)} sets: OK")
+          EOF
 
       - name: Save the price files to the repo
         id: commit
