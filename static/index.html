@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>One Piece Buyer Prices</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+  <style>
+    /* ---------- Colors (light mode first, then dark mode) ---------- */
+    :root {
+      --bg: #f3f1ec;
+      --surface: #fffefb;
+      --fg: #1d1b19;
+      --muted: #6d6760;
+      --line: #e1dcd3;
+      --accent: #b3261e;       /* One Piece red */
+      --accent-soft: #f4e2df;
+      --good: #1b6b3a;         /* green for buyer prices */
+      --note-bg: #fbf1cf;
+      --note-line: #e7d48b;
+      --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+      --body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #171514; --surface: #211e1c; --fg: #ece7e1; --muted: #a39b92; --line: #3a3532;
+        --accent: #ef6a5e; --accent-soft: #3d2320; --good: #6fcf8f; --note-bg: #34301f; --note-line: #5b5230;
+        color-scheme: dark;
+      }
+    }
+
+    /* ---------- Page layout ---------- */
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; }
+    main { max-width: 1100px; margin: 0 auto; padding: 28px 16px 56px; display: grid; gap: 14px; }
+    h1 { margin: 0; font-family: var(--display); font-size: 2.1rem; line-height: 1.05; }
+    h1 span { color: var(--accent); }
+    .sub { margin: 4px 0 0; color: var(--muted); }
+    .note {
+      background: var(--note-bg); border: 1px solid var(--note-line); border-radius: 8px;
+      padding: 10px 14px; line-height: 1.45;
+    }
+
+    /* ---------- Search box and example searches ---------- */
+    #search {
+      width: 100%; padding: 13px 16px; font: inherit; font-size: 1.1rem; color: var(--fg);
+      background: var(--surface); border: 2px solid var(--line); border-radius: 10px;
+    }
+    #search:focus-visible { outline: none; border-color: var(--accent); }
+    .tips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: var(--muted); font-size: 0.9rem; }
+    .tips button {
+      font: inherit; font-size: 0.85rem; color: var(--fg); background: var(--surface);
+      border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; cursor: pointer;
+    }
+    .tips button:hover, .tips button:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+    #status { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+    /* ---------- The grid of card results ---------- */
+    #results { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+      padding: 12px; display: flex; flex-direction: column; gap: 4px; min-width: 0;
+    }
+    .card img {
+      width: 100%; aspect-ratio: 5 / 7;  /* trading-card shape */
+      object-fit: contain; background: var(--line); border-radius: 8px; margin-bottom: 6px;
+    }
+    .name { font-weight: 600; overflow-wrap: anywhere; }
+    .meta { color: var(--muted); font-size: 0.88rem; }
+    .meta b { font-family: var(--display); font-weight: 600; letter-spacing: 0.03em; color: var(--fg); }
+    .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .tag {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      background: var(--accent-soft); color: var(--accent); border-radius: 4px; padding: 2px 7px;
+    }
+    .prices { margin: 8px 0; display: grid; gap: 2px; font-variant-numeric: tabular-nums; }
+    .prices div { display: flex; justify-content: space-between; gap: 8px; }
+    .prices span:last-child { white-space: nowrap; }
+    .offer-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .offer { font-family: var(--display); font-size: 1.4rem; font-weight: 700; color: var(--good); }
+    .none { font-family: var(--display); font-size: 1.2rem; font-weight: 600; color: var(--muted); }
+    .ref { font-size: 0.88rem; color: var(--muted); }
+    .card a {
+      margin-top: auto; text-align: center; padding: 8px; border-radius: 8px;
+      background: var(--accent); color: #fff; text-decoration: none; font-weight: 600;
+    }
+    .card a:hover, .card a:focus-visible { opacity: 0.88; }
+    footer { color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
+
+    /* Phones: smaller pictures so prices fit on screen. */
+    @media (max-width: 520px) {
+      .card img { width: 60%; align-self: center; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>One Piece TCG <span>Buyer Prices</span></h1>
+    <p class="sub" id="updated">Loading prices...</p>
+  </header>
+
+  <div class="note">
+    <strong>Prices reflect all conditions.</strong>
+    Buyer offer is <span id="percents">80% to 90%</span> of the lowest TCGplayer listing.
+  </div>
+
+  <input id="search" type="search" autocomplete="off" aria-label="Search cards"
+         placeholder="Card name, number (OP01-001), set, or printing">
+  <div class="tips">
+    <span>Try:</span>
+    <button type="button">luffy op01-003</button>
+    <button type="button">shanks manga</button>
+    <button type="button">zoro alt art</button>
+    <button type="button">don gold</button>
+  </div>
+  <p id="status"></p>
+  <div id="results"></div>
+
+  <footer>Prices from TCGplayer via tcgcsv.com, updated daily. Not affiliated with TCGplayer or Bandai.</footer>
+</main>
+
+<script>
+  const MAX_RESULTS = 100;
+  let cards = [];        // every card, filled in once cards.json loads
+  let searchText = [];   // lowercase text to search in, one per card
+
+  // ---------- Helpers ----------
+
+  // Turn 1079.5 into "$1,079.50". Show a dash when there's no price.
+  function money(value) {
+    if (value === null) return "—";
+    return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  }
+
+  // Make text safe to put inside HTML (stops card names from breaking the page).
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text ?? "";
+    return div.innerHTML;
+  }
+
+  // ---------- Build the HTML for one card ----------
+  function cardHtml(card) {
+    let prices;
+    if (card.low === null) {
+      // No listing price means nothing to calculate.
+      prices = `
+        <span class="offer-label">Buyer pays</span>
+        <span class="none">No current listing</span>
+        <div class="ref"><span>Market price</span><span>${money(card.market)}</span></div>`;
+    } else {
+      prices = `
+        <span class="offer-label">Buyer pays</span>
+        <span class="offer">${money(card.buyer_min)} – ${money(card.buyer_max)}</span>
+        <div class="ref"><span>Listing (low)</span><span>${money(card.low)}</span></div>
+        <div class="ref"><span>Market price</span><span>${money(card.market)}</span></div>`;
+    }
+
+    // If the big picture fails to load, fall back to the standard size.
+    return `
+      <article class="card">
+        <img src="${escapeHtml(card.image)}" alt="${escapeHtml(card.name)}" loading="lazy"
+             onerror="this.onerror = null; this.src = this.src.replace('_400w', '_200w');">
+        <div class="name">${escapeHtml(card.name)}</div>
+        <div class="meta">${card.number ? `<b>${escapeHtml(card.number)}</b> · ` : ""}${escapeHtml(card.set)}</div>
+        <div class="tags">
+          <span class="tag">${escapeHtml(card.printing)}</span>
+          ${card.foil ? '<span class="tag">Foil</span>' : ""}
+        </div>
+        <div class="prices">${prices}</div>
+        <a href="${escapeHtml(card.url)}" target="_blank" rel="noopener">See latest sales on TCGplayer</a>
+      </article>`;
+  }
+
+  // ---------- Searching ----------
+  const searchBox = document.getElementById("search");
+  const statusText = document.getElementById("status");
+  const resultsBox = document.getElementById("results");
+
+  // Every word typed must appear somewhere in the card's text,
+  // so "luffy op05" finds Luffy cards from OP05.
+  function runSearch() {
+    const query = searchBox.value.trim().toLowerCase();
+    if (query.length < 2) {
+      statusText.textContent = "Type at least 2 letters to search.";
+      resultsBox.innerHTML = "";
+      return;
+    }
+
+    const words = query.split(/\s+/);
+    const matches = [];
+    for (let i = 0; i < cards.length && matches.length < MAX_RESULTS; i++) {
+      if (words.every(word => searchText[i].includes(word))) {
+        matches.push(cards[i]);
+      }
+    }
+
+    const count = matches.length;
+    statusText.textContent = count === 0 ? "No cards found."
+      : count === MAX_RESULTS ? "Showing the first 100 matches. Add a word to narrow it down."
+      : `${count} card${count === 1 ? "" : "s"} found.`;
+    resultsBox.innerHTML = matches.map(cardHtml).join("");
+
+    // Put the search in the address bar so it can be bookmarked or shared.
+    history.replaceState(null, "", "?q=" + encodeURIComponent(searchBox.value.trim()));
+  }
+
+  searchBox.addEventListener("input", runSearch);
+  document.querySelectorAll(".tips button").forEach(button => {
+    button.addEventListener("click", () => {
+      searchBox.value = button.textContent;
+      runSearch();
+    });
+  });
+
+  // ---------- Load the card data, then start ----------
+  fetch("cards.json")
+    .then(response => response.json())
+    .then(data => {
+      cards = data.cards;
+      searchText = cards.map(card =>
+        [card.name, card.number, card.set, card.printing, card.foil ? "foil" : ""].join(" ").toLowerCase());
+
+      const pct = n => Math.round(n * 100) + "%";
+      document.getElementById("percents").textContent =
+        `${pct(data.buyer_min_percent)} to ${pct(data.buyer_max_percent)}`;
+      document.getElementById("updated").textContent =
+        `${cards.length.toLocaleString()} cards · prices updated ${data.updated}`;
+
+      // Use the search from the address (like ?q=luffy), or show an example.
+      searchBox.value = new URLSearchParams(location.search).get("q") || "luffy op01-003";
+      runSearch();
+    })
+    .catch(() => {
+      document.getElementById("updated").textContent =
+        "Couldn't load cards.json. Run update_prices.py and build_site.py first.";
+    });
+</script>
+</body>
+</html>

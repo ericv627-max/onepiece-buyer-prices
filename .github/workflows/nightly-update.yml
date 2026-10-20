@@ -1,0 +1,32 @@
+# Rebuilds the website on Vercel every night so prices stay fresh.
+#
+# How it works: tcgcsv.com updates prices around 20:00 UTC. An hour and a half
+# later, this sends a request to a Vercel "deploy hook" (a private link from
+# your Vercel project settings). Vercel then runs update_prices.py and
+# build_site.py (see vercel.json) and publishes the new site.
+#
+# Setup (one time): put the deploy hook link in this repo's
+# Settings -> Secrets and variables -> Actions, as a secret named
+# VERCEL_DEPLOY_HOOK.
+
+name: Nightly price update
+
+on:
+  schedule:
+    - cron: "30 21 * * *"   # every day at 21:30 UTC
+  workflow_dispatch:         # adds a "Run workflow" button to update right now
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask Vercel to rebuild the site
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "The VERCEL_DEPLOY_HOOK secret is missing. See the setup notes at the top of this file."
+            exit 1
+          fi
+          curl --fail --silent --show-error -X POST "$HOOK"
+          echo "Rebuild started. Check the Deployments tab on Vercel."
