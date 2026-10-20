@@ -1,4 +1,6 @@
-# One Piece TCG Buyer Price Lookup
+# VENDR
+
+**Price it. Stack it. Flip it.**
 
 Search any One Piece card and see what a buyer should offer for it.
 
