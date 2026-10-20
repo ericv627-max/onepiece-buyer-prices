@@ -14,118 +14,130 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2307070d'/><path d='M6 7h5l5 13 5-13h5L18.5 26h-5z' fill='%2300f0ff'/></svg>">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
   <style>
-    /* ---------- Colors: dark base with neon accents ---------- */
+    /* ---------- Colors: dark base, frosted glass panels, neon accents ---------- */
     :root {
-      --bg: #07070d;
-      --surface: #0e0e19;
-      --surface-2: #151527;
-      --line: #25253f;
-      --fg: #e8e8f4;
-      --muted: #9090b0;        /* still 6:1 on the surface colour, so it stays readable */
-      --faint: #5c5c7c;        /* placeholders and "soon" labels only */
+      --bg: #06060c;
+      --glass: rgba(20, 20, 36, 0.52);         /* panels: see-through, blurred */
+      --glass-strong: rgba(14, 14, 26, 0.72);  /* the card detail and the top bar's fallback */
+      --glass-hover: rgba(32, 32, 56, 0.6);
+      --line: rgba(255, 255, 255, 0.08);       /* hairline edges on glass */
+      --line-strong: rgba(255, 255, 255, 0.14);
+      --fg: #eceaf6;
+      --muted: #9a98b8;        /* still 6:1 on the glass, so it stays readable */
+      --faint: #626080;        /* placeholders and "soon" labels only */
       --cyan: #00f0ff;         /* main neon: focus, links, the logo */
       --magenta: #ff2bd6;      /* the slogan and printing tags */
       --yellow: #f5ee30;       /* notes and foil tags */
       --good: #3dff8f;         /* buyer prices, and prices going up */
       --down: #ff4d6d;         /* prices going down */
+      --radius: 14px;
+      --radius-sm: 10px;
+      --blur: blur(18px) saturate(160%);
       --display: "Orbitron", "Arial Black", sans-serif;
       --body: "Chakra Petch", system-ui, "Segoe UI", sans-serif;
       --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
       color-scheme: dark;
     }
 
+    /* ---------- Scrollbars: thin, dark, and only bright when you grab them ---------- */
+    html { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.16) transparent; }
+    .filters, dialog { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.12) transparent; }
+    .filters:hover, dialog:hover { scrollbar-color: rgba(0, 240, 255, 0.4) transparent; }
+
     /* ---------- Page ---------- */
     * { box-sizing: border-box; }
     body {
       margin: 0; min-height: 100vh; color: var(--fg); font-family: var(--body); font-size: 15px;
-      background:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 240, 255, 0.10), transparent 70%),
-        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(255, 43, 214, 0.07), transparent 70%),
-        var(--bg);
-      background-attachment: fixed;
+      background: var(--bg);
     }
-    /* Faint grid and scanlines over everything, for the cyberpunk screen feel. */
+    /* Soft neon glows behind everything, so the glass has something to blur. */
     body::before {
-      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-      background-image:
-        linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-      background-size: 44px 44px;
-      mask-image: linear-gradient(to bottom, black, transparent 60%);
-    }
-    body::after {
-      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 100;
-      background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 3px);
+      content: ""; position: fixed; inset: -20%; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(40% 35% at 15% 10%, rgba(0, 240, 255, 0.16), transparent 70%),
+        radial-gradient(35% 30% at 90% 25%, rgba(255, 43, 214, 0.13), transparent 70%),
+        radial-gradient(45% 40% at 60% 100%, rgba(80, 60, 255, 0.12), transparent 70%);
+      filter: blur(20px);
     }
     .wrap { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; padding: 0 16px; }
     button, select, input { font: inherit; color: inherit; }
     [hidden] { display: none !important; }
+    .glass {
+      background: var(--glass); border: 1px solid var(--line); border-radius: var(--radius);
+      backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
 
-    /* ---------- Top bar (like Collectr's: logo, sections, status) ---------- */
+    /* ---------- Top bar: clear glass, the cards blur behind it as you scroll ---------- */
     .topbar {
       position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--line);
-      background: rgba(7, 7, 13, 0.86); backdrop-filter: blur(10px);
+      background: rgba(10, 10, 20, 0.48);
+      backdrop-filter: blur(22px) saturate(180%); -webkit-backdrop-filter: blur(22px) saturate(180%);
     }
-    .topbar .wrap { display: flex; align-items: center; gap: 22px; height: 60px; }
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      .topbar, .glass { background: var(--glass-strong); }
+    }
+    .topbar .wrap { display: flex; align-items: center; gap: 22px; height: 62px; }
     .logo { display: flex; flex-direction: column; text-decoration: none; color: var(--fg); line-height: 1; }
     .logo b {
-      font-family: var(--display); font-weight: 900; font-size: 1.55rem; letter-spacing: 0.1em;
-      text-shadow: -1.5px 0 var(--magenta), 1.5px 0 var(--cyan), 0 0 18px rgba(0, 240, 255, 0.35);
+      font-family: var(--display); font-weight: 900; font-size: 1.5rem; letter-spacing: 0.1em;
+      text-shadow: -1px 0 var(--magenta), 1px 0 var(--cyan), 0 0 18px rgba(0, 240, 255, 0.35);
     }
     .logo small { font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--magenta); margin-top: 4px; }
     .tabs { display: flex; gap: 4px; }
     .tabs button {
-      background: none; border: 0; border-bottom: 2px solid transparent; padding: 18px 10px 16px; cursor: pointer;
-      font-weight: 600; color: var(--muted);
+      background: none; border: 0; border-radius: 999px; padding: 7px 14px; cursor: pointer;
+      font-weight: 600; color: var(--muted); transition: background 0.15s, color 0.15s;
     }
-    .tabs button:hover, .tabs button:focus-visible { color: var(--fg); outline: none; }
-    .tabs button[aria-current="page"] { color: var(--cyan); border-bottom-color: var(--cyan); }
-    .tabs button:disabled { color: var(--faint); cursor: default; }
+    .tabs button:hover, .tabs button:focus-visible { color: var(--fg); background: rgba(255, 255, 255, 0.06); outline: none; }
+    .tabs button[aria-current="page"] { color: var(--cyan); background: rgba(0, 240, 255, 0.1); box-shadow: inset 0 0 0 1px rgba(0, 240, 255, 0.25); }
+    .tabs button:disabled { color: var(--faint); cursor: default; background: none; }
     .tabs button:disabled small { font-family: var(--mono); font-size: 0.6rem; text-transform: uppercase; margin-left: 4px; }
-    .status-line { margin-left: auto; font-family: var(--mono); font-size: 0.74rem; color: var(--muted); text-align: right; }
+    .status-line { margin: 0 0 0 auto; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); text-align: right; line-height: 1.5; }
     .status-line .live { color: var(--good); }
 
     /* ---------- "Find a card" panel ---------- */
-    .finder {
-      margin: 22px 0 14px; padding: 18px; background: var(--surface); border: 1px solid var(--line);
-      clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
-      display: grid; gap: 12px;
-    }
-    .finder h1 { margin: 0; font-size: 1.15rem; font-weight: 700; }
+    .finder { margin: 22px 0 16px; padding: 18px; display: grid; gap: 12px; }
+    .finder h1 { margin: 0; font-size: 1.1rem; font-weight: 700; }
     .search-row { display: flex; gap: 8px; }
     .search-wrap { position: relative; flex: 1; }
     .search-wrap::before {
-      content: ">"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      content: ">"; position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
       font-family: var(--mono); font-weight: 600; color: var(--cyan); pointer-events: none;
     }
     #search {
-      width: 100%; padding: 12px 120px 12px 34px; font-family: var(--mono); font-size: 1rem;
-      background: var(--bg); border: 1px solid var(--line); border-radius: 0;
+      width: 100%; padding: 12px 120px 12px 35px; font-family: var(--mono); font-size: 1rem;
+      background: rgba(0, 0, 0, 0.32); border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
     #search::placeholder { color: var(--faint); }
-    #search:focus-visible { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan), 0 0 22px rgba(0, 240, 255, 0.14); }
+    #search:focus-visible { outline: none; border-color: rgba(0, 240, 255, 0.7); box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.14); }
     #search::-webkit-search-cancel-button { display: none; }
     .search-hint {
       position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
       font-family: var(--mono); font-size: 0.7rem; color: var(--muted); pointer-events: none;
     }
-    .search-hint kbd { font-family: inherit; border: 1px solid var(--line); padding: 1px 5px; color: var(--cyan); }
+    .search-hint kbd { font-family: inherit; border: 1px solid var(--line-strong); border-radius: 5px; padding: 1px 5px; color: var(--cyan); }
     .btn {
-      padding: 0 16px; border: 1px solid var(--line); background: var(--surface-2); cursor: pointer; font-weight: 600;
+      padding: 0 16px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;
+      background: rgba(255, 255, 255, 0.05); transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
-    .btn:hover, .btn:focus-visible { border-color: var(--cyan); color: var(--cyan); outline: none; }
-    .btn.primary { background: var(--cyan); color: var(--bg); border-color: var(--cyan); }
-    .btn.primary:hover, .btn.primary:focus-visible { background: var(--magenta); border-color: var(--magenta); color: var(--bg); }
+    .btn:hover, .btn:focus-visible { border-color: rgba(0, 240, 255, 0.6); color: var(--cyan); outline: none; }
+    .btn.primary { background: var(--cyan); color: var(--bg); border-color: var(--cyan); box-shadow: 0 0 18px rgba(0, 240, 255, 0.25); }
+    .btn.primary:hover, .btn.primary:focus-visible { background: #6ff6ff; color: var(--bg); }
     .note { margin: 0; font-size: 0.85rem; color: var(--muted); }
     .note strong { color: var(--yellow); font-weight: 600; }
 
     /* ---------- Chips: recent searches and example searches ---------- */
     .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.85rem; }
     .chips-label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
-    .chip { display: inline-flex; align-items: center; background: var(--bg); border: 1px solid var(--line); }
-    .chip button { background: none; border: 0; padding: 3px 10px; cursor: pointer; font-size: 0.85rem; }
-    .chip .remove { padding: 3px 8px 3px 2px; color: var(--muted); }
-    .chip:hover, .chip:focus-within { border-color: var(--cyan); color: var(--cyan); }
+    .chip {
+      display: inline-flex; align-items: center; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line);
+    }
+    .chip button { background: none; border: 0; padding: 4px 11px; cursor: pointer; font-size: 0.85rem; border-radius: 999px; }
+    .chip .remove { padding: 4px 10px 4px 0; color: var(--muted); }
+    .chip:hover, .chip:focus-within { border-color: rgba(0, 240, 255, 0.5); color: var(--cyan); }
     .chip .remove:hover, .chip .remove:focus-visible { color: var(--magenta); }
     .chip button:focus-visible { outline: none; text-decoration: underline; }
     .link-btn {
@@ -140,41 +152,47 @@
     #count b { color: var(--fg); }
     .sort { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted); }
     select {
-      background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 7px 10px; color: var(--fg);
+      background: rgba(20, 20, 36, 0.7); border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+      padding: 7px 10px; color: var(--fg);
     }
-    select:focus-visible, input:focus-visible { outline: none; border-color: var(--cyan); }
-    #filters-toggle { display: none; height: 34px; }
+    select option { background: #14142a; }
+    select:focus-visible, input:focus-visible { outline: none; border-color: rgba(0, 240, 255, 0.7); }
+    #filters-toggle { display: none; height: 36px; }
 
     /* ---------- Two columns: filters on the left, cards on the right ---------- */
     .layout { display: grid; grid-template-columns: 236px 1fr; gap: 18px; align-items: start; }
     .layout.no-filters { grid-template-columns: 1fr; }
     .filters {
-      position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto;
-      background: var(--surface); border: 1px solid var(--line); padding: 14px; display: grid; gap: 18px;
+      position: sticky; top: 78px; max-height: calc(100vh - 94px); overflow-y: auto;
+      padding: 16px; display: grid; gap: 18px;
     }
-    .filters h2 { margin: 0 0 2px; font-size: 0.95rem; }
+    .filters h2 { margin: 0 0 2px; font-size: 0.92rem; }
     .filters p.help { margin: 0 0 8px; font-size: 0.78rem; color: var(--muted); }
-    .filters label.check { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 0.88rem; cursor: pointer; }
+    .filters label.check { display: flex; align-items: center; gap: 9px; padding: 3px 0; font-size: 0.88rem; cursor: pointer; }
+    .filters label.check:hover { color: var(--cyan); }
     .filters label.check span.n { margin-left: auto; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
     .filters input[type="checkbox"] { accent-color: var(--cyan); width: 15px; height: 15px; margin: 0; }
     .filters select { width: 100%; }
     .range { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); }
     .range input {
-      width: 100%; min-width: 0; padding: 6px 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 0;
-      font-family: var(--mono); font-size: 0.85rem;
+      width: 100%; min-width: 0; padding: 7px 9px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--line-strong);
+      border-radius: 8px; font-family: var(--mono); font-size: 0.85rem; -moz-appearance: textfield;
     }
+    .range input::-webkit-outer-spin-button, .range input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .filters-head { display: flex; justify-content: space-between; align-items: baseline; }
 
     /* ---------- Card tiles ---------- */
     #results { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 12px; }
     .tile {
       display: flex; flex-direction: column; gap: 3px; padding: 10px; min-width: 0; text-decoration: none; color: inherit;
-      background: linear-gradient(180deg, var(--surface-2), var(--surface)); border: 1px solid var(--line);
-      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
-      transition: border-color 0.15s, transform 0.15s;
+      background: rgba(255, 255, 255, 0.035); border: 1px solid var(--line); border-radius: var(--radius);
+      transition: border-color 0.15s, transform 0.15s, background 0.15s, box-shadow 0.15s;
     }
-    .tile:hover, .tile:focus-visible { border-color: rgba(0, 240, 255, 0.6); transform: translateY(-2px); outline: none; }
-    .tile img { width: 100%; aspect-ratio: 5 / 7; object-fit: contain; background: var(--bg); margin-bottom: 6px; }
+    .tile:hover, .tile:focus-visible {
+      border-color: rgba(0, 240, 255, 0.45); background: rgba(255, 255, 255, 0.06); transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), 0 0 22px rgba(0, 240, 255, 0.12); outline: none;
+    }
+    .tile img { width: 100%; aspect-ratio: 5 / 7; object-fit: contain; border-radius: 8px; margin-bottom: 6px; }
     .tile .name {
       font-weight: 600; font-size: 0.92rem; line-height: 1.25; overflow-wrap: anywhere;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
@@ -186,7 +204,6 @@
     .tile .offer.long { font-size: 0.98rem; }
     .tile .offer.longer { font-size: 0.86rem; }
     .tile .offer.longest { font-size: 0.74rem; }
-    .detail .offer.longest { font-size: 1.5rem; }
     .tile .none { font-size: 0.85rem; color: var(--muted); }
     .tile .sub-row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
     .tile .sub { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -202,11 +219,12 @@
 
     /* ---------- Sets view ---------- */
     .set-tile {
-      display: grid; grid-template-columns: 54px 1fr; gap: 10px; align-items: center; padding: 10px; text-align: left; cursor: pointer;
-      background: var(--surface); border: 1px solid var(--line);
+      display: grid; grid-template-columns: 54px 1fr; gap: 12px; align-items: center; padding: 10px; text-align: left; cursor: pointer;
+      background: rgba(255, 255, 255, 0.035); border: 1px solid var(--line); border-radius: var(--radius);
+      transition: border-color 0.15s, background 0.15s;
     }
-    .set-tile:hover, .set-tile:focus-visible { border-color: var(--cyan); outline: none; }
-    .set-tile img { width: 54px; aspect-ratio: 5 / 7; object-fit: cover; background: var(--bg); }
+    .set-tile:hover, .set-tile:focus-visible { border-color: rgba(0, 240, 255, 0.45); background: rgba(255, 255, 255, 0.06); outline: none; }
+    .set-tile img { width: 54px; aspect-ratio: 5 / 7; object-fit: cover; border-radius: 6px; }
     .set-tile b { display: block; font-size: 0.9rem; line-height: 1.25; }
     .set-tile span { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
     #results.sets { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
@@ -214,34 +232,38 @@
     /* ---------- Card detail (opens over the page, like Collectr's product page) ---------- */
     dialog {
       width: min(860px, calc(100vw - 24px)); max-height: calc(100vh - 24px); padding: 0; color: var(--fg);
-      background: var(--surface); border: 1px solid var(--cyan); box-shadow: 0 0 40px rgba(0, 240, 255, 0.18);
+      background: var(--glass-strong); border: 1px solid var(--line-strong); border-radius: 20px;
+      backdrop-filter: blur(26px) saturate(170%); -webkit-backdrop-filter: blur(26px) saturate(170%);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 40px rgba(0, 240, 255, 0.1);
     }
-    dialog::backdrop { background: rgba(3, 3, 8, 0.78); backdrop-filter: blur(3px); }
-    .detail { display: grid; grid-template-columns: 300px 1fr; gap: 22px; padding: 22px; }
-    .detail img { width: 100%; aspect-ratio: 5 / 7; object-fit: contain; background: var(--bg); }
+    dialog::backdrop { background: rgba(3, 3, 8, 0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    .detail { display: grid; grid-template-columns: 300px 1fr; gap: 24px; padding: 24px; }
+    .detail img { width: 100%; aspect-ratio: 5 / 7; object-fit: contain; border-radius: 12px; }
     .detail h2 { margin: 0 34px 4px 0; font-size: 1.5rem; line-height: 1.15; }
     .detail .set { color: var(--cyan); font-size: 0.95rem; }
     .detail .tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0 16px; }
     .tag {
       font-family: var(--mono); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
-      color: var(--magenta); border: 1px solid rgba(255, 43, 214, 0.45); padding: 1px 6px;
+      color: var(--magenta); border: 1px solid rgba(255, 43, 214, 0.4); border-radius: 999px; padding: 2px 8px;
     }
-    .tag.foil { color: var(--yellow); border-color: rgba(245, 238, 48, 0.45); }
-    .tag.plain { color: var(--muted); border-color: var(--line); }
+    .tag.foil { color: var(--yellow); border-color: rgba(245, 238, 48, 0.4); }
+    .tag.plain { color: var(--muted); border-color: var(--line-strong); }
     .label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
     .detail .label, .detail .offer { display: block; }
     .detail .offer { font-size: 2.1rem; font-weight: 700; color: var(--good); text-shadow: 0 0 16px rgba(61, 255, 143, 0.35); line-height: 1.1; }
+    .detail .offer.longest { font-size: 1.5rem; }
     .detail .rows { margin: 14px 0 18px; display: grid; gap: 6px; font-variant-numeric: tabular-nums; }
     .detail .rows div { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
     .detail .rows span:first-child { color: var(--muted); }
     .detail .chart-note { font-size: 0.85rem; color: var(--muted); margin: 0 0 18px; }
     .detail a.buy {
-      display: inline-block; padding: 10px 16px; font-weight: 700; text-decoration: none; color: var(--bg); background: var(--cyan);
+      display: inline-block; padding: 10px 18px; font-weight: 700; text-decoration: none; color: var(--bg); background: var(--cyan);
+      border-radius: var(--radius-sm); box-shadow: 0 0 18px rgba(0, 240, 255, 0.25);
     }
-    .detail a.buy:hover, .detail a.buy:focus-visible { background: var(--magenta); outline: none; }
+    .detail a.buy:hover, .detail a.buy:focus-visible { background: #6ff6ff; outline: none; }
     .close {
-      position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; background: none; border: 1px solid var(--line);
-      cursor: pointer; font-size: 1.1rem;
+      position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 999px; cursor: pointer; font-size: 1.1rem;
+      background: rgba(255, 255, 255, 0.06); border: 1px solid var(--line-strong);
     }
     .close:hover, .close:focus-visible { border-color: var(--magenta); color: var(--magenta); outline: none; }
 
@@ -258,8 +280,8 @@
       .detail img { width: 60%; justify-self: center; }
     }
     @media (max-width: 520px) {
-      .topbar .wrap { gap: 12px; }
-      .tabs button { padding: 18px 6px 16px; font-size: 0.85rem; }
+      .topbar .wrap { gap: 10px; }
+      .tabs button { padding: 7px 10px; font-size: 0.85rem; }
       .tabs button:disabled { display: none; }
       .search-hint { display: none; }
       #search { padding-right: 12px; }
@@ -267,7 +289,7 @@
       #results { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .tile { transition: none; }
+      .tile, .set-tile, .btn, .tabs button, #search { transition: none; }
       .tile:hover { transform: none; }
     }
   </style>
@@ -288,7 +310,7 @@
 </header>
 
 <main class="wrap">
-  <section class="finder" aria-labelledby="finder-title">
+  <section class="finder glass" aria-labelledby="finder-title">
     <h1 id="finder-title">Find a card</h1>
     <form class="search-row" id="search-form" role="search">
       <div class="search-wrap">
@@ -321,7 +343,7 @@
   </div>
 
   <div class="layout">
-    <aside class="filters" id="filters" aria-label="Filters">
+    <aside class="filters glass" id="filters" aria-label="Filters">
       <div class="filters-head"><h2>Filters</h2><button type="button" class="link-btn" id="reset-filters">Reset</button></div>
       <div>
         <h2>Set</h2>
