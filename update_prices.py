@@ -27,7 +27,7 @@ import re
 import sqlite3
 import time
 import urllib.request
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -278,6 +278,12 @@ def save_rows(rows):
         )
         db.execute(
             "INSERT OR REPLACE INTO info VALUES ('last_updated', ?)", (today,)
+        )
+        # The exact moment, in UTC. The web page turns it into the visitor's
+        # own time zone, so it never shows "tomorrow's" date in the evening.
+        db.execute(
+            "INSERT OR REPLACE INTO info VALUES ('last_updated_at', ?)",
+            (datetime.now(timezone.utc).isoformat(timespec="seconds"),),
         )
     db.close()
 

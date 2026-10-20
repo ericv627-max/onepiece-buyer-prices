@@ -77,6 +77,7 @@ def main():
         })
 
     updated = db.execute("SELECT value FROM info WHERE key = 'last_updated'").fetchone()
+    updated_at = db.execute("SELECT value FROM info WHERE key = 'last_updated_at'").fetchone()
     db.close()
 
     # Start with an empty "site" folder each time.
@@ -85,6 +86,7 @@ def main():
 
     data = {
         "updated": updated[0] if updated else None,
+        "updated_at": updated_at[0] if updated_at else None,  # UTC, e.g. "2026-10-19T21:31:05+00:00"
         "buyer_min_percent": BUYER_MIN_PERCENT,
         "buyer_max_percent": BUYER_MAX_PERCENT,
         "cards": cards,

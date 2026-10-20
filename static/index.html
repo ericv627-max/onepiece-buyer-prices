@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>One Piece Buyer Prices</title>
+  <title>One Piece TCG Buyer Prices</title>
+  <!-- What shows when someone shares the link in a text or chat. -->
+  <meta name="description" content="Look up any One Piece TCG card and see what a buyer should offer, based on today's TCGplayer prices. Updated daily.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="One Piece TCG Buyer Prices">
+  <meta property="og:description" content="Look up any One Piece TCG card and see what a buyer should offer, based on today's TCGplayer prices. Updated daily.">
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#b3261e">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23b3261e'/><text x='16' y='23' font-size='20' font-family='Arial' font-weight='bold' text-anchor='middle' fill='white'>$</text></svg>">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
   <style>
     /* ---------- Colors (light mode first, then dark mode) ---------- */
@@ -77,9 +85,10 @@
     .prices div { display: flex; justify-content: space-between; gap: 8px; }
     .prices span:last-child { white-space: nowrap; }
     .offer-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-    .offer { font-family: var(--display); font-size: 1.4rem; font-weight: 700; color: var(--good); }
-    .none { font-family: var(--display); font-size: 1.2rem; font-weight: 600; color: var(--muted); }
-    .ref { font-size: 0.88rem; color: var(--muted); }
+    /* The buyer range is the answer; listing and market are just the working. */
+    .offer { font-family: var(--display); font-size: 1.75rem; font-weight: 700; line-height: 1.1; color: var(--good); margin-bottom: 6px; }
+    .none { font-family: var(--display); font-size: 1.2rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+    .ref { font-size: 0.8rem; color: var(--muted); opacity: 0.85; }
     .card a {
       margin-top: auto; text-align: center; padding: 8px; border-radius: 8px;
       background: var(--accent); color: #fff; text-decoration: none; font-weight: 600;
@@ -140,6 +149,20 @@
     return div.innerHTML;
   }
 
+  // Turn the UTC update time into "today, 5:31 PM" in the visitor's own time zone.
+  // Older builds only have a date, so show that as it is.
+  function whenUpdated(data) {
+    if (!data.updated_at) return data.updated;
+    const when = new Date(data.updated_at);
+    const time = when.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    const dayKey = d => d.toDateString();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (dayKey(when) === dayKey(new Date())) return `today, ${time}`;
+    if (dayKey(when) === dayKey(yesterday)) return `yesterday, ${time}`;
+    return when.toLocaleDateString([], { month: "short", day: "numeric" }) + `, ${time}`;
+  }
+
   // ---------- Build the HTML for one card ----------
   function cardHtml(card) {
     let prices;
@@ -178,6 +201,17 @@
   const statusText = document.getElementById("status");
   const resultsBox = document.getElementById("results");
 
+  // When nothing matches, say which word is the problem instead of
+  // leaving a dead end. Every word has to match, so one typo hides everything.
+  function noMatchesHelp(words) {
+    const missing = words.filter(word => !searchText.some(text => text.includes(word)));
+    if (missing.length > 0) {
+      return `No cards found. Nothing matches "${missing.join('", "')}". ` +
+        "Check the spelling, or search a card number like OP01-001.";
+    }
+    return "No cards found. Each word matches on its own, but no single card has all of them. Try fewer words.";
+  }
+
   // Every word typed must appear somewhere in the card's text,
   // so "luffy op05" finds Luffy cards from OP05.
   function runSearch() {
@@ -197,7 +231,7 @@
     }
 
     const count = matches.length;
-    statusText.textContent = count === 0 ? "No cards found."
+    statusText.textContent = count === 0 ? noMatchesHelp(words)
       : count === MAX_RESULTS ? "Showing the first 100 matches. Add a word to narrow it down."
       : `${count} card${count === 1 ? "" : "s"} found.`;
     resultsBox.innerHTML = matches.map(cardHtml).join("");
@@ -226,7 +260,7 @@
       document.getElementById("percents").textContent =
         `${pct(data.buyer_min_percent)} to ${pct(data.buyer_max_percent)}`;
       document.getElementById("updated").textContent =
-        `${cards.length.toLocaleString()} cards · prices updated ${data.updated}`;
+        `${cards.length.toLocaleString()} cards · prices updated ${whenUpdated(data)}`;
 
       // Use the search from the address (like ?q=luffy), or show an example.
       searchBox.value = new URLSearchParams(location.search).get("q") || "luffy op01-003";
