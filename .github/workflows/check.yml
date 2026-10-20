@@ -58,12 +58,13 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"   # runs the TypeScript tests directly, with no extra packages
           cache: npm
 
-      - name: App builds
+      - name: App checks
         if: hashFiles('package.json') != ''
         run: |
           npm ci
           npx tsc --noEmit
+          npm test
           npm run build
