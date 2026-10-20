@@ -118,3 +118,10 @@ dialog.modal::backdrop { background: rgba(3, 3, 8, 0.6); backdrop-filter: blur(5
 }
 
 [role="tabpanel"] .quick { justify-content: flex-start; }
+
+/* Small phones: the range buttons share the width instead of overflowing it. */
+.inline-link { display: inline-block; padding: 5px 0; }
+@media (max-width: 480px) {
+  .chart-head .ranges { width: 100%; }
+  .chart-head .ranges button { min-width: 0; flex: 1; }
+}
