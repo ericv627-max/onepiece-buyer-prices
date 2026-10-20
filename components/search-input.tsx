@@ -19,6 +19,12 @@ export function SearchInput({
 }) {
   const [hint, setHint] = useState("");
   const suggestion = useRef("");
+  const input = useRef<HTMLInputElement>(null);
+
+  // Focus the box on load, but not on touch screens, where it would pop the keyboard up at once.
+  useEffect(() => {
+    if (autoFocus && !matchMedia("(pointer: coarse)").matches) input.current?.focus();
+  }, [autoFocus]);
 
   useEffect(() => {
     const items = (pool ?? []).filter(p => p.number && (p.market ?? 0) >= 5);
@@ -63,8 +69,8 @@ export function SearchInput({
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
       <input
         type="search"
+        ref={input}
         value={value}
-        autoFocus={autoFocus}
         autoComplete="off"
         spellCheck={false}
         aria-label={label}
