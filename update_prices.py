@@ -40,6 +40,14 @@ BASE_URL = f"https://tcgcsv.com/tcgplayer/{CATEGORY_ID}"
 # The database file lives next to this script.
 DB_PATH = Path(__file__).parent / "prices.db"
 
+# The files the website is built from. The nightly GitHub job saves these into
+# the repo, so the site can be rebuilt any time without downloading again.
+#   data/catalog.json            - every card with today's prices
+#   data/history/YYYY-MM-DD.json - just that day's prices, kept forever for
+#                                  the up/down arrows and price charts
+DATA_DIR = Path(__file__).parent / "data"
+HISTORY_DIR = DATA_DIR / "history"
+
 # Be polite to the free service: wait a little between requests.
 SECONDS_BETWEEN_REQUESTS = 0.2
 
@@ -288,11 +296,44 @@ def save_rows(rows):
     db.close()
 
 
+def card_id(row):
+    """One id per price row: the TCGplayer product plus Normal/Foil, e.g. "512345-Foil"."""
+    return f"{row['product_id']}-{row['sub_type']}"
+
+
+def save_data_files(rows):
+    """
+    Write data/catalog.json and today's data/history file (see DATA_DIR above).
+    The date is the UTC date, which is what the nightly job runs on.
+    """
+    now = datetime.now(timezone.utc)
+    today = now.date().isoformat()
+    HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+
+    catalog = {
+        "updated": today,
+        "updated_at": now.isoformat(timespec="seconds"),
+        "cards": [{"id": card_id(row), **row} for row in rows],
+    }
+    # One card per line: keeps the file readable and makes git's daily diff small.
+    lines = ",\n".join(json.dumps(card, separators=(",", ":")) for card in catalog["cards"])
+    header = json.dumps({k: v for k, v in catalog.items() if k != "cards"})[:-1]
+    (DATA_DIR / "catalog.json").write_text(f'{header}, "cards": [\n{lines}\n]}}\n')
+
+    # History only keeps the two numbers per card: [lowest listing, market price].
+    snapshot = {
+        "date": today,
+        "prices": {card_id(row): [row["low_price"], row["market_price"]] for row in rows},
+    }
+    (HISTORY_DIR / f"{today}.json").write_text(json.dumps(snapshot, separators=(",", ":")))
+
+
 def main():
     print("Downloading One Piece prices from tcgcsv.com ...")
     rows = build_rows()
     save_rows(rows)
-    print(f"Done! Saved {len(rows)} card printings to {DB_PATH.name}.")
+    save_data_files(rows)
+    print(f"Done! Saved {len(rows)} card printings to {DB_PATH.name} and the data folder.")
 
 
 # This line means: only run main() when you start this file directly

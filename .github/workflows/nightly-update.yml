@@ -1,13 +1,15 @@
-# Rebuilds the website on Vercel every night so prices stay fresh.
+# Downloads fresh prices every night and saves them into this repo.
 #
 # How it works: tcgcsv.com updates prices around 20:00 UTC. An hour and a half
-# later, this sends a request to a Vercel "deploy hook" (a private link from
-# your Vercel project settings). Vercel then runs update_prices.py and
-# build_site.py (see vercel.json) and publishes the new site.
+# later, this runs update_prices.py, which writes data/catalog.json (every card
+# with today's prices) and data/history/<date>.json (today's prices, kept for
+# the up/down arrows and charts). It commits those files to main, and Vercel
+# rebuilds the site from that commit. Vercel never downloads prices itself,
+# so prices are fetched from tcgcsv once a day, as they ask.
 #
 # Setup (one time): put the deploy hook link in this repo's
 # Settings -> Secrets and variables -> Actions, as a secret named
-# VERCEL_DEPLOY_HOOK.
+# VERCEL_DEPLOY_HOOK. It's only used if the commit didn't start a rebuild.
 
 name: Nightly price update
 
@@ -16,11 +18,48 @@ on:
     - cron: "30 21 * * *"   # every day at 21:30 UTC
   workflow_dispatch:         # adds a "Run workflow" button to update right now
 
+permissions:
+  contents: write            # lets the job commit the new price files
+
+concurrency:
+  group: nightly-update      # never run two updates at once
+  cancel-in-progress: false
+
 jobs:
-  rebuild:
+  update:
     runs-on: ubuntu-latest
     steps:
-      - name: Ask Vercel to rebuild the site
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download today's prices
+        run: python update_prices.py
+
+      - name: Check the site builds from them
+        run: python build_site.py
+
+      - name: Save the price files to the repo
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "Prices haven't changed since the last save."
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "Prices for $(date -u +%F)"
+            # If someone pushed code while this ran, put the price commit on top of it.
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ask Vercel to rebuild (only if nothing was pushed)
+        if: steps.commit.outputs.pushed == 'false'
         env:
           HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
         run: |

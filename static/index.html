@@ -25,7 +25,8 @@
       --cyan: #00f0ff;         /* main neon: focus, links, the logo */
       --magenta: #ff2bd6;      /* action buttons and the slogan */
       --yellow: #f5ee30;       /* warnings and "note" text */
-      --good: #3dff8f;         /* buyer prices */
+      --good: #3dff8f;         /* buyer prices, and prices going up */
+      --down: #ff4d6d;         /* prices going down */
       --display: "Orbitron", "Arial Black", sans-serif;
       --body: "Chakra Petch", system-ui, "Segoe UI", sans-serif;
       --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
@@ -141,6 +142,16 @@
       width: 100%; aspect-ratio: 5 / 7;  /* trading-card shape */
       object-fit: contain; background: var(--bg); margin-bottom: 6px;
     }
+    /* ---------- Up/down arrows (market price since the previous day) ---------- */
+    .offer-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .move {
+      font-family: var(--mono); font-size: 0.8rem; font-weight: 600; white-space: nowrap;
+      padding: 1px 7px; border: 1px solid currentColor;
+    }
+    .up { color: var(--good); }
+    .down { color: var(--down); }
+    .flat { color: var(--muted); }
+    .ref .up, .ref .down, .ref .flat { margin-right: 6px; }
     .name { font-weight: 600; font-size: 1rem; overflow-wrap: anywhere; }
     .meta { color: var(--muted); font-size: 0.85rem; }
     .meta b { font-family: var(--mono); font-weight: 600; color: var(--cyan); }
@@ -306,23 +317,61 @@
     rememberSearch(button.dataset.q);
   });
 
+  // ---------- Up/down arrows ----------
+  // card.change is the market price move since the previous day's prices, or
+  // null when there's nothing to compare yet (new card, or the first day of history).
+  let changeSince = null;   // e.g. "2026-10-19", from cards.json
+
+  function changeParts(change) {
+    if (!change) return null;
+    const { amount, percent } = change;
+    if (Math.abs(percent) < 0.1) return { cls: "flat", arrow: "▬", pct: "0%", amt: "no change" };
+    const sign = amount > 0 ? "+" : "−";
+    return {
+      cls: amount > 0 ? "up" : "down",
+      arrow: amount > 0 ? "▲" : "▼",
+      pct: `${Math.abs(percent).toFixed(1)}%`,
+      amt: `${sign}${money(Math.abs(amount))}`,
+    };
+  }
+
+  function sinceText() {
+    if (!changeSince) return "since the last update";
+    const day = new Date(changeSince + "T12:00:00Z");
+    return "since " + day.toLocaleDateString([], { month: "short", day: "numeric" });
+  }
+
+  // The badge on the picture: "▲ 3.4%".
+  function moveBadge(card) {
+    const p = changeParts(card.change);
+    if (!p) return "";
+    return `<span class="move ${p.cls}" title="Market price ${p.amt} ${sinceText()}">${p.arrow} ${p.pct}</span>`;
+  }
+
+  // The same change written out next to the market price: "▲ +$1.20".
+  function moveInline(card) {
+    const p = changeParts(card.change);
+    if (!p || p.cls === "flat") return "";
+    return `<span class="${p.cls}" title="${sinceText()}">${p.arrow} ${p.amt}</span>`;
+  }
+
   // ---------- Build the HTML for one card ----------
   function cardHtml(card) {
     let prices;
     if (card.low === null) {
       // No listing price means nothing to calculate.
       prices = `
-        <span class="offer-label">Buyer pays</span>
+        <div class="offer-row"><span class="offer-label">Buyer pays</span>${moveBadge(card)}</div>
         <span class="none">No current listing</span>
-        <div class="ref"><span>Market price</span><span>${money(card.market)}</span></div>`;
+        <div class="ref"><span>Market price</span><span>${moveInline(card)}${money(card.market)}</span></div>`;
     } else {
       const range = `${money(card.buyer_min)} – ${money(card.buyer_max)}`;
       const size = range.length > 19 ? " longer" : range.length > 15 ? " long" : "";
       prices = `
-        <span class="offer-label">Buyer pays</span>
+        <div class="offer-row"><span class="offer-label">Buyer pays</span>${moveBadge(card)}</div>
         <span class="offer${size}">${range}</span>
         <div class="ref"><span>Listing (low)</span><span>${money(card.low)}</span></div>
-        <div class="ref"><span>Market price</span><span>${money(card.market)}</span></div>`;
+        <div class="ref"><span>Market price</span><span>${moveInline(card)}${money(card.market)}</span></div>`;
     }
 
     // If the big picture fails to load, fall back to the standard size.
@@ -474,6 +523,7 @@
     .then(response => response.json())
     .then(data => {
       cards = data.cards;
+      changeSince = data.change_since || null;
       searchText = cards.map(card =>
         [card.name, card.number, card.set, card.printing, card.foil ? "foil" : ""].join(" ").toLowerCase());
       // Random pulls and suggestions come from cards worth at least $5, so they're interesting.

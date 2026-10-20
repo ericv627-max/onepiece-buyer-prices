@@ -1,16 +1,20 @@
 """
 build_site.py
 -------------
-Turns prices.db into a website that can be hosted for free (GitHub Pages).
+Turns the saved price data into the website Vercel publishes.
 
 Run it after update_prices.py:
 
     python update_prices.py
     python build_site.py
 
-It creates a "site" folder with two files:
+It reads:
+    data/catalog.json      - every card with today's prices (from update_prices.py)
+    data/history/*.json    - one file of prices per day, for the up/down arrows
+
+and creates a "site" folder with two files:
     site/index.html  - the search page (copied from static/index.html)
-    site/cards.json  - every card with its buyer prices already worked out
+    site/cards.json  - every card with its buyer prices and price change worked out
 
 The search page downloads cards.json once and searches it right in the
 browser, so the website doesn't need a Python server running.
@@ -24,11 +28,12 @@ then open http://localhost:8000
 
 import json
 import shutil
-import sqlite3
 from pathlib import Path
 
 HERE = Path(__file__).parent
-DB_PATH = HERE / "prices.db"
+DATA_DIR = HERE / "data"
+CATALOG_PATH = DATA_DIR / "catalog.json"
+HISTORY_DIR = DATA_DIR / "history"
 SITE_DIR = HERE / "site"
 
 # ---------------------------------------------------------------------------
@@ -51,18 +56,47 @@ def buyer_prices(listing_price):
     )
 
 
-def main():
-    if not DB_PATH.exists():
-        print("prices.db not found. Run 'python update_prices.py' first.")
-        raise SystemExit(1)
+def load_previous_prices(today):
+    """
+    Find the most recent history file from BEFORE today and return
+    (its date, {card id: [low, market]}). Returns (None, {}) when there isn't one yet.
+    """
+    earlier = sorted(p for p in HISTORY_DIR.glob("*.json") if p.stem < today)
+    if not earlier:
+        return None, {}
+    snapshot = json.loads(earlier[-1].read_text())
+    return snapshot["date"], snapshot["prices"]
 
-    db = sqlite3.connect(DB_PATH)
-    db.row_factory = sqlite3.Row  # lets us use row["name"] instead of row[2]
+
+def price_change(now, before):
+    """
+    How much the market price moved since the previous day.
+    The market price (recent sales) is steadier than the lowest listing,
+    which can jump around when one cheap copy is listed or sold.
+    """
+    if now is None or not before:
+        return None
+    if before <= 0:
+        return None
+    return {"amount": round(now - before, 2), "percent": round((now - before) / before * 100, 1)}
+
+
+def main():
+    if not CATALOG_PATH.exists():
+        # First run on a new computer: there's no saved data yet, so download it once.
+        print("data/catalog.json not found, so downloading prices first ...")
+        import update_prices
+        update_prices.main()
+
+    catalog = json.loads(CATALOG_PATH.read_text())
+    previous_date, previous = load_previous_prices(catalog["updated"])
 
     cards = []
-    for row in db.execute("SELECT * FROM cards ORDER BY name, card_number, printing"):
+    for row in sorted(catalog["cards"], key=lambda r: (r["name"], r["card_number"], r["printing"])):
         buyer_min, buyer_max = buyer_prices(row["low_price"])
+        before = previous.get(row["id"])
         cards.append({
+            "id": row["id"],
             "name": row["name"],
             "set": row["set_name"],
             "number": row["card_number"],
@@ -74,19 +108,17 @@ def main():
             "market": row["market_price"],
             "buyer_min": buyer_min,
             "buyer_max": buyer_max,
+            "change": price_change(row["market_price"], before[1] if before else None),
         })
-
-    updated = db.execute("SELECT value FROM info WHERE key = 'last_updated'").fetchone()
-    updated_at = db.execute("SELECT value FROM info WHERE key = 'last_updated_at'").fetchone()
-    db.close()
 
     # Start with an empty "site" folder each time.
     shutil.rmtree(SITE_DIR, ignore_errors=True)
     SITE_DIR.mkdir()
 
     data = {
-        "updated": updated[0] if updated else None,
-        "updated_at": updated_at[0] if updated_at else None,  # UTC, e.g. "2026-10-19T21:31:05+00:00"
+        "updated": catalog["updated"],
+        "updated_at": catalog["updated_at"],    # UTC, e.g. "2026-10-19T21:31:05+00:00"
+        "change_since": previous_date,          # the day the arrows compare against
         "buyer_min_percent": BUYER_MIN_PERCENT,
         "buyer_max_percent": BUYER_MAX_PERCENT,
         "cards": cards,
@@ -95,7 +127,8 @@ def main():
     (SITE_DIR / "cards.json").write_text(json.dumps(data, separators=(",", ":")))
     shutil.copy(HERE / "static" / "index.html", SITE_DIR / "index.html")
 
-    print(f"Built the site with {len(cards)} cards in the '{SITE_DIR.name}' folder.")
+    compared = f", price changes compared with {previous_date}" if previous_date else ", no earlier day to compare with yet"
+    print(f"Built the site with {len(cards)} cards in the '{SITE_DIR.name}' folder{compared}.")
 
 
 if __name__ == "__main__":
