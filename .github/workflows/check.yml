@@ -1,0 +1,54 @@
+# Runs on every push: checks the Python scripts and the app build without
+# downloading anything from tcgcsv (it uses the price files already saved).
+
+name: Check
+
+on:
+  push:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Python scripts compile
+        run: python -m py_compile update_prices.py build_site.py
+
+      - name: Sealed product types are named correctly
+        run: |
+          python - <<'EOF'
+          from update_prices import sealed_type
+          cases = {
+              "Extra Booster: Heroines Edition Vol.2 - Booster Box Case": "Case",
+              "Extra Booster: Heroines Edition Vol.2 - Booster Box": "Booster Box",
+              "Extra Booster: Heroines Edition Vol.2 - Sleeved Booster Pack": "Booster Pack",
+              "Romance Dawn - Booster Pack": "Booster Pack",
+              "Starter Deck 1: Straw Hat Crew": "Starter Deck",
+              "One Piece Card Game Premium Card Collection": "Premium Collection",
+              "Something Unusual": "Other Sealed",
+          }
+          for name, expected in cases.items():
+              got = sealed_type(name)
+              assert got == expected, f"{name!r}: expected {expected!r}, got {got!r}"
+          print("sealed_type OK")
+          EOF
+
+      - name: Old site still builds from the saved data
+        run: python build_site.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: App builds
+        if: hashFiles('package.json') != ''
+        run: |
+          npm ci
+          npx tsc --noEmit
+          npm run build

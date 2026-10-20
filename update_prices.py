@@ -128,6 +128,35 @@ def describe_printing(card_name):
     return ", ".join(printing) if printing else "Regular"
 
 
+# Sealed product types, checked in order: the first phrase found in the
+# product name wins, so "Booster Box Case" is a Case, not a Booster Box.
+SEALED_TYPES = [
+    ("case", "Case"),
+    ("booster box", "Booster Box"),
+    ("sleeved booster", "Booster Pack"),
+    ("booster pack", "Booster Pack"),
+    ("double pack", "Double Pack"),
+    ("starter deck", "Starter Deck"),
+    ("ultra deck", "Starter Deck"),
+    ("deck set", "Deck Set"),
+    ("premium", "Premium Collection"),
+    ("gift", "Gift Collection"),
+    ("collection", "Collection"),
+    ("tin", "Tin"),
+    ("bundle", "Bundle"),
+    ("set", "Set"),
+]
+
+
+def sealed_type(name):
+    """Name a sealed product's type from its TCGplayer name, e.g. "Booster Box"."""
+    lowered = name.lower()
+    for phrase, label in SEALED_TYPES:
+        if re.search(rf"\b{re.escape(phrase)}\b", lowered):
+            return label
+    return "Other Sealed"
+
+
 def round_money(value):
     """Round to cents, but keep None as None (None = no price)."""
     return round(value, 2) if value is not None else None
@@ -228,10 +257,8 @@ def make_row(product, set_name, price):
     rarity = get_extended_value(product, "Rarity")
 
     # Sealed items (booster boxes, packs, decks) have no card number AND no
-    # rarity. This is a card lookup, so we skip them. (DON!! cards have a
-    # rarity but no number, so they are kept.)
-    if not card_number and not rarity:
-        return None
+    # rarity. (DON!! cards have a rarity but no number, so they count as cards.)
+    sealed = not card_number and not rarity
 
     sub_type = price["subTypeName"] if price else "Normal"
     product_id = product["productId"]
@@ -242,11 +269,16 @@ def make_row(product, set_name, price):
     return {
         "product_id": product_id,
         "sub_type": sub_type,
+        "kind": "sealed" if sealed else "card",
+        "product_type": sealed_type(product["name"]) if sealed else "Single Card",
+        # tcgcsv's One Piece category is the English game; Japanese cards
+        # aren't in it. Kept as a field so Japanese can be added later.
+        "language": "English",
         "name": product["name"],
         "set_name": set_name,
         "card_number": card_number or "",
         "rarity": rarity,
-        "printing": describe_printing(product["name"]),
+        "printing": "Sealed" if sealed else describe_printing(product["name"]),
         "image_url": image_url,
         "tcgplayer_url": product.get("url")
         or f"https://www.tcgplayer.com/product/{product_id}",

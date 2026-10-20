@@ -103,7 +103,9 @@ def main():
     rates = load_optional(RATES_PATH, None)
 
     cards = []
-    for row in sorted(catalog["cards"], key=lambda r: (r["name"], r["card_number"], r["printing"])):
+    # The old one-page site is cards only; sealed products are for the new app.
+    singles = [row for row in catalog["cards"] if row.get("kind", "card") == "card"]
+    for row in sorted(singles, key=lambda r: (r["name"], r["card_number"], r["printing"])):
         buyer_min, buyer_max = buyer_prices(row["low_price"])
         before = previous.get(row["id"])
         cards.append({
