@@ -83,7 +83,8 @@
       font-family: var(--display); font-weight: 900; font-size: 1.5rem; letter-spacing: 0.1em;
       text-shadow: -1px 0 var(--magenta), 1px 0 var(--cyan), 0 0 18px rgba(0, 240, 255, 0.35);
     }
-    .logo small { font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--magenta); margin-top: 4px; }
+    .logo { flex: none; }
+    .logo small { white-space: nowrap; font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--magenta); margin-top: 4px; }
     .tabs { display: flex; gap: 4px; }
     .tabs button {
       background: none; border: 0; border-radius: 999px; padding: 7px 14px; cursor: pointer;
@@ -93,8 +94,107 @@
     .tabs button[aria-current="page"] { color: var(--cyan); background: rgba(0, 240, 255, 0.1); box-shadow: inset 0 0 0 1px rgba(0, 240, 255, 0.25); }
     .tabs button:disabled { color: var(--faint); cursor: default; background: none; }
     .tabs button:disabled small { font-family: var(--mono); font-size: 0.6rem; text-transform: uppercase; margin-left: 4px; }
-    .status-line { margin: 0 0 0 auto; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); text-align: right; line-height: 1.5; }
+    .status-line { margin: 0; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
     .status-line .live { color: var(--good); }
+    .finder-head { display: flex; align-items: baseline; gap: 6px 14px; flex-wrap: wrap; }
+
+    /* ---------- Right side of the top bar: search, currency, bell, profile ---------- */
+    .top-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .top-search {
+      position: relative; display: flex; align-items: center; gap: 8px; height: 38px; width: 132px; padding: 0 10px 0 12px;
+      background: rgba(255, 255, 255, 0.06); border: 1px solid var(--line-strong); border-radius: 999px; cursor: text;
+      transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .top-search svg { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
+    .top-search input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; padding: 0; font-family: var(--mono); font-size: 0.85rem; }
+    .top-search input::placeholder { color: var(--muted); }
+    .top-search input::-webkit-search-cancel-button { display: none; }
+    .top-search input:focus-visible { outline: none; }
+    .top-search kbd {
+      font-family: var(--mono); font-size: 0.7rem; color: var(--muted); border: 1px solid var(--line-strong);
+      border-radius: 5px; padding: 0 6px; line-height: 1.5;
+    }
+    .top-search:focus-within { border-color: rgba(0, 240, 255, 0.6); box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.12); }
+    /* Scrolled past the big search: this one opens up to take its place. */
+    .topbar.scrolled .top-search { width: 340px; background: rgba(0, 0, 0, 0.35); }
+    @media (max-width: 1180px) { .topbar.scrolled .top-search { width: 230px; } }
+    .topbar.scrolled .top-search svg { stroke: var(--cyan); }
+
+    .menu { position: relative; }
+    .pill-btn, .icon-btn, .profile-btn {
+      display: inline-flex; align-items: center; gap: 7px; height: 38px; cursor: pointer;
+      background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line-strong); border-radius: 999px;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .pill-btn { padding: 0 12px 0 6px; font-weight: 600; font-size: 0.88rem; }
+    .icon-btn { position: relative; width: 38px; justify-content: center; }
+    .icon-btn svg { width: 18px; height: 18px; fill: none; stroke: var(--fg); stroke-width: 1.8; stroke-linejoin: round; }
+    .profile-btn { padding: 0 14px 0 4px; font-weight: 600; font-size: 0.88rem; }
+    .pill-btn:hover, .icon-btn:hover, .profile-btn:hover,
+    .pill-btn:focus-visible, .icon-btn:focus-visible, .profile-btn:focus-visible,
+    [aria-expanded="true"].pill-btn, [aria-expanded="true"].icon-btn, [aria-expanded="true"].profile-btn {
+      border-color: rgba(0, 240, 255, 0.55); background: rgba(0, 240, 255, 0.08); outline: none;
+    }
+    .coin {
+      display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 5px; border-radius: 999px;
+      background: var(--good); color: var(--bg); font-size: 0.78rem; font-weight: 700;
+    }
+    .avatar {
+      display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 999px; font-weight: 700;
+      color: var(--bg); background: linear-gradient(135deg, var(--cyan), var(--magenta));
+    }
+    .badge {
+      position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+      background: var(--magenta); color: var(--bg); font-family: var(--mono); font-size: 0.66rem; font-weight: 700;
+      display: grid; place-items: center; box-shadow: 0 0 10px rgba(255, 43, 214, 0.6);
+    }
+
+    /* Dropdown panels under the top-bar buttons. */
+    .dropdown {
+      position: absolute; right: 0; top: calc(100% + 10px); z-index: 30; width: 260px; padding: 12px;
+      /* Nearly solid: a blur can't work inside the top bar, which is already blurring. */
+      background: rgba(13, 13, 24, 0.97); max-height: min(70vh, 520px); overflow-y: auto;
+      scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+    }
+    .dropdown.wide { width: 340px; }
+    .currency-list { width: 200px; padding: 6px; display: grid; gap: 2px; }
+    .currency-list button {
+      display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 8px; background: none; border: 0;
+      border-radius: 8px; cursor: pointer; text-align: left; font-size: 0.88rem;
+    }
+    .currency-list button:hover, .currency-list button:focus-visible { background: rgba(255, 255, 255, 0.07); outline: none; }
+    .currency-list button[aria-checked="true"] { color: var(--cyan); background: rgba(0, 240, 255, 0.08); }
+    .currency-list .coin { background: rgba(255, 255, 255, 0.1); color: var(--fg); }
+    .currency-list button[aria-checked="true"] .coin { background: var(--good); color: var(--bg); }
+    .currency-list small { margin-left: auto; color: var(--muted); font-size: 0.72rem; }
+    .menu-title { margin: 0 0 2px; font-weight: 700; font-size: 1rem; }
+    .menu-help { margin: 0 0 12px; font-size: 0.8rem; color: var(--muted); }
+    .menu-field { display: grid; gap: 4px; font-size: 0.78rem; color: var(--muted); margin-bottom: 12px; }
+    .menu-field input {
+      padding: 8px 10px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--line-strong); border-radius: 8px; color: var(--fg); font-size: 0.9rem;
+    }
+    .wide-btn { width: 100%; height: 38px; margin-bottom: 8px; }
+    .btn:disabled { opacity: 0.55; cursor: default; color: var(--muted); border-color: var(--line); }
+
+    /* Notifications in the bell menu. */
+    .notes-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .notes-head b { font-size: 1rem; }
+    .note-item {
+      display: grid; grid-template-columns: 32px 1fr; gap: 10px; width: 100%; padding: 9px 8px; text-align: left;
+      background: none; border: 0; border-radius: 10px; cursor: pointer; color: inherit;
+    }
+    .note-item:hover, .note-item:focus-visible { background: rgba(255, 255, 255, 0.06); outline: none; }
+    .note-item .ico {
+      display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; font-size: 0.95rem;
+      background: rgba(0, 240, 255, 0.1); color: var(--cyan);
+    }
+    .note-item .ico.hot { background: rgba(255, 43, 214, 0.12); color: var(--magenta); }
+    .note-item .ico.good { background: rgba(61, 255, 143, 0.1); color: var(--good); }
+    .note-item .ico.bad { background: rgba(255, 77, 109, 0.12); color: var(--down); }
+    .note-item b { display: block; font-size: 0.88rem; font-weight: 600; line-height: 1.3; }
+    .note-item span { font-size: 0.78rem; color: var(--muted); }
+    .note-item.unread b::after { content: ""; display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 999px; background: var(--magenta); vertical-align: middle; }
+    .toolbar { scroll-margin-top: 80px; }
 
     /* ---------- "Find a card" panel ---------- */
     .finder { margin: 22px 0 16px; padding: 18px; display: grid; gap: 12px; }
@@ -275,14 +375,35 @@
       #filters-toggle { display: inline-block; }
       .filters { display: none; position: static; max-height: none; }
       .filters.open { display: grid; }
-      .status-line { display: none; }
+      .pname { display: none; }
+      .profile-btn { padding: 0 3px; }
+      .top-search { width: 38px; padding: 0 10px; }
+      .top-search input, .top-search kbd { display: none; }
+      .topbar.scrolled .top-search { width: 220px; }
+      .topbar.scrolled .top-search input { display: block; }
       .detail { grid-template-columns: 1fr; }
       .detail img { width: 60%; justify-self: center; }
     }
     @media (max-width: 520px) {
-      .topbar .wrap { gap: 10px; }
-      .tabs button { padding: 7px 10px; font-size: 0.85rem; }
+      .topbar .wrap { gap: 8px; }
+      .logo small { display: none; }
+      .logo b { font-size: 1.2rem; }
+      .tabs button { padding: 7px 9px; font-size: 0.82rem; }
       .tabs button:disabled { display: none; }
+      .top-actions { gap: 5px; }
+      .pill-btn { padding: 0 8px 0 5px; }
+      #currency-code { display: none; }
+      /* At the top of a phone page the big search is right there, so the small one hides. */
+      .topbar:not(.scrolled) .top-search { display: none; }
+      .pill-btn, .icon-btn, .profile-btn { height: 34px; }
+      .icon-btn { width: 34px; }
+      .avatar { width: 26px; height: 26px; }
+      .topbar .wrap { padding: 0 12px; }
+      /* Scrolled on a phone: the search takes the tabs' place. */
+      .topbar.scrolled .tabs { display: none; }
+      .topbar.scrolled .top-search { width: auto; flex: 1; }
+      .topbar.scrolled .top-actions { flex: 1; }
+      .dropdown, .dropdown.wide { position: fixed; left: 12px; right: 12px; top: 70px; width: auto; }
       .search-hint { display: none; }
       #search { padding-right: 12px; }
       .search-row .btn:not(.primary) { display: none; }
@@ -305,13 +426,53 @@
       <button type="button" disabled title="Coming with Google login">Portfolio<small>soon</small></button>
       <button type="button" disabled title="Coming once a few days of price history are saved">Showcase<small>soon</small></button>
     </nav>
-    <p class="status-line" id="updated">Loading prices...</p>
+    <div class="top-actions">
+      <!-- Small at the top of the page; once the big search scrolls away, it slides open (like Collectr). -->
+      <form class="top-search" id="top-search" role="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input id="top-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Search cards" aria-label="Search cards">
+        <kbd>/</kbd>
+      </form>
+
+      <div class="menu">
+        <button type="button" class="pill-btn" id="currency-btn" aria-haspopup="true" aria-expanded="false" aria-controls="currency-menu">
+          <span class="coin" id="currency-symbol">$</span><span id="currency-code">USD</span>
+        </button>
+        <div class="dropdown glass currency-list" id="currency-menu" hidden></div>
+      </div>
+
+      <div class="menu">
+        <button type="button" class="icon-btn" id="bell-btn" aria-haspopup="true" aria-expanded="false" aria-controls="bell-menu" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+          <span class="badge" id="bell-count" hidden></span>
+        </button>
+        <div class="dropdown glass wide" id="bell-menu" hidden></div>
+      </div>
+
+      <div class="menu">
+        <button type="button" class="profile-btn" id="profile-btn" aria-haspopup="true" aria-expanded="false" aria-controls="profile-menu">
+          <span class="avatar" id="avatar">G</span><span class="pname" id="profile-name">Guest</span>
+        </button>
+        <div class="dropdown glass" id="profile-menu" hidden>
+          <p class="menu-title" id="profile-title">Guest</p>
+          <p class="menu-help">Not signed in. Google sign-in, your portfolio and watchlist are coming next.</p>
+          <label class="menu-field">Your name
+            <input id="name-input" type="text" maxlength="30" autocomplete="nickname" placeholder="Guest">
+          </label>
+          <button type="button" class="btn wide-btn" disabled>Sign in with Google · soon</button>
+          <button type="button" class="link-btn" id="profile-clear-recent">Clear recent searches</button>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 
 <main class="wrap">
   <section class="finder glass" aria-labelledby="finder-title">
-    <h1 id="finder-title">Find a card</h1>
+    <div class="finder-head">
+      <h1 id="finder-title">Find a card</h1>
+      <p class="status-line" id="updated">Loading prices...</p>
+    </div>
     <form class="search-row" id="search-form" role="search">
       <div class="search-wrap">
         <input id="search" type="search" autocomplete="off" spellcheck="false" aria-label="Search cards"
@@ -323,7 +484,7 @@
     </form>
     <!-- Filled in by the script: recent searches if there are any, otherwise example searches. -->
     <div class="chips" id="chips"></div>
-    <p class="note"><strong>Buyer pays</strong> = <span id="percents">80% to 90%</span> of the lowest TCGplayer listing. Prices reflect all conditions.</p>
+    <p class="note"><strong>Buyer pays</strong> = <span id="percents">80% to 90%</span> of the lowest TCGplayer listing. Prices reflect all conditions.<span id="converted"></span></p>
   </section>
 
   <div class="toolbar">
@@ -336,6 +497,8 @@
         <option value="price-asc">Price: low to high</option>
         <option value="up">Biggest gains</option>
         <option value="down">Biggest drops</option>
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
         <option value="name">Name A–Z</option>
         <option value="number">Card number</option>
       </select>
@@ -404,10 +567,41 @@
 
   // ---------- Helpers ----------
 
-  // Turn 1079.5 into "$1,079.50". Show a dash when there's no price.
+  // ---------- Currency ----------
+  // Every price in the data is in US dollars. The picker converts them for display
+  // using the day's exchange rates (saved by the nightly job into cards.json).
+  const CURRENCY_KEY = "vendr.currency";
+  const CURRENCIES = [
+    ["USD", "US dollar"], ["CAD", "Canadian dollar"], ["EUR", "Euro"], ["GBP", "British pound"],
+    ["AUD", "Australian dollar"], ["JPY", "Japanese yen"], ["CNY", "Chinese yuan"], ["KRW", "South Korean won"],
+    ["NZD", "New Zealand dollar"], ["MXN", "Mexican peso"], ["BRL", "Brazilian real"], ["CHF", "Swiss franc"],
+    ["SGD", "Singapore dollar"], ["HKD", "Hong Kong dollar"], ["PHP", "Philippine peso"], ["INR", "Indian rupee"],
+    ["SEK", "Swedish krona"], ["NOK", "Norwegian krone"], ["DKK", "Danish krone"], ["PLN", "Polish złoty"],
+  ];
+  let rates = { USD: 1 };
+  let ratesDate = null;
+  let currency = "USD";
+  try { currency = localStorage.getItem(CURRENCY_KEY) || "USD"; } catch { /* stays USD */ }
+
+  function rate() {
+    return rates[currency] || 1;
+  }
+
+  function symbolFor(code) {
+    const parts = new Intl.NumberFormat("en-US", { style: "currency", currency: code }).formatToParts(0);
+    return parts.find(p => p.type === "currency").value;
+  }
+
+  // The short mark for the round badge: "$" for CA$, "€", "¥"... or the code's first letter (CHF → "F").
+  function coinFor(code) {
+    const mark = symbolFor(code).replace(/^[A-Z]{2,}/, "");
+    return mark || code.slice(-1);
+  }
+
+  // Turn 1079.5 into "$1,079.50" (or "€961.70", "¥170,834"...). Show a dash when there's no price.
   function money(value) {
     if (value === null || value === undefined) return "—";
-    return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
+    return (value * rate()).toLocaleString("en-US", { style: "currency", currency: rates[currency] ? currency : "USD" });
   }
 
   // Make text safe to put inside HTML (stops card names from breaking the page).
@@ -579,6 +773,9 @@
     "price-asc": (a, b) => (priceOf(a) ?? Infinity) - (priceOf(b) ?? Infinity),
     up: (a, b) => (b.change?.percent ?? -Infinity) - (a.change?.percent ?? -Infinity),
     down: (a, b) => (a.change?.percent ?? Infinity) - (b.change?.percent ?? Infinity),
+    // By the set's release date, then card number within the set.
+    newest: (a, b) => (b.released || "").localeCompare(a.released || "") || SORTERS.number(a, b),
+    oldest: (a, b) => (a.released || "9999").localeCompare(b.released || "9999") || SORTERS.number(a, b),
     name: (a, b) => a.name.localeCompare(b.name),
     number: (a, b) => (a.number || "~").localeCompare(b.number || "~", undefined, { numeric: true }),
   };
@@ -586,11 +783,13 @@
   // Every word typed must appear somewhere in the card's text,
   // so "luffy op05" finds Luffy cards from OP05. Then the filters, then the sort.
   function runSearch() {
+    if (document.activeElement !== topInput) topInput.value = searchBox.value;
     const query = searchBox.value.trim().toLowerCase();
     const words = query.length >= 2 ? query.split(/\s+/) : [];
     const set = filterEls.set.value;
-    const min = filterEls.min.value === "" ? null : Number(filterEls.min.value);
-    const max = filterEls.max.value === "" ? null : Number(filterEls.max.value);
+    // The boxes are in the chosen currency; the data is in US dollars.
+    const min = filterEls.min.value === "" ? null : Number(filterEls.min.value) / rate();
+    const max = filterEls.max.value === "" ? null : Number(filterEls.max.value) / rate();
     const rarities = checked("rarity");
     const printings = checked("printing");
     const foilOnly = filterEls.foil.checked;
@@ -879,8 +1078,211 @@
     }, 55);
   }
 
+  // ---------- Top bar search: opens up once the big search scrolls away ----------
+  const topbar = document.querySelector(".topbar");
+  const topSearch = document.getElementById("top-search");
+  const topInput = document.getElementById("top-search-input");
+
+  new IntersectionObserver(([entry]) => {
+    topbar.classList.toggle("scrolled", !entry.isIntersecting);
+  }, { rootMargin: "-70px 0px 0px 0px" }).observe(document.querySelector(".finder"));
+
+  // Both boxes always hold the same search.
+  searchBox.addEventListener("input", () => { topInput.value = searchBox.value; });
+  topInput.addEventListener("input", () => {
+    searchBox.value = topInput.value;
+    if (view !== "explore") showView("explore"); else runSearch();
+    updateHint();
+    // Jump back to the top of the results, keeping the search in the bar.
+    document.querySelector(".toolbar").scrollIntoView({ block: "start" });
+  });
+  topSearch.addEventListener("submit", event => {
+    event.preventDefault();
+    rememberSearch(topInput.value);
+    topInput.blur();
+  });
+  // At the top of the page the small box just sends you to the big one.
+  topSearch.addEventListener("mousedown", event => {
+    if (!topbar.classList.contains("scrolled")) {
+      event.preventDefault();
+      searchBox.focus();
+    }
+  });
+  // "/" jumps to whichever search box is showing.
+  document.addEventListener("keydown", event => {
+    if (event.key !== "/" || event.target.closest("input, textarea, select") || dialog.open) return;
+    event.preventDefault();
+    (topbar.classList.contains("scrolled") ? topInput : searchBox).focus();
+  });
+
+  // ---------- Top bar menus (currency, bell, profile) ----------
+  function setupMenu(buttonId, menuId, onOpen) {
+    const button = document.getElementById(buttonId);
+    const menu = document.getElementById(menuId);
+    button.addEventListener("click", () => {
+      const open = menu.hidden;
+      closeMenus();
+      if (open) {
+        menu.hidden = false;
+        button.setAttribute("aria-expanded", "true");
+        if (onOpen) onOpen();
+      }
+    });
+  }
+  function closeMenus() {
+    document.querySelectorAll(".dropdown").forEach(menu => { menu.hidden = true; });
+    document.querySelectorAll(".menu > button").forEach(button => button.setAttribute("aria-expanded", "false"));
+  }
+  document.addEventListener("click", event => {
+    if (!event.target.closest(".menu")) closeMenus();
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeMenus();
+  });
+
+  // Currency
+  function renderCurrency() {
+    document.getElementById("currency-symbol").textContent = coinFor(currency);
+    document.getElementById("currency-code").textContent = currency;
+    const sym = symbolFor(currency);
+    filterEls.min.placeholder = `${sym} Min`;
+    filterEls.max.placeholder = `${sym} Max`;
+    const converted = document.getElementById("converted");
+    converted.textContent = currency === "USD" || !ratesDate ? "" :
+      ` Shown in ${currency}, converted from US dollars at the ${new Date(ratesDate + "T12:00:00Z").toLocaleDateString([], { month: "short", day: "numeric" })} exchange rate.`;
+    document.getElementById("currency-menu").innerHTML = CURRENCIES.filter(([code]) => rates[code]).map(([code, name]) => `
+      <button type="button" role="menuitemradio" aria-checked="${code === currency}" data-currency="${code}">
+        <span class="coin">${escapeHtml(coinFor(code))}</span>${code}<small>${escapeHtml(name)}</small>
+      </button>`).join("");
+  }
+  setupMenu("currency-btn", "currency-menu");
+  document.getElementById("currency-menu").addEventListener("click", event => {
+    const button = event.target.closest("[data-currency]");
+    if (!button) return;
+    currency = button.dataset.currency;
+    try { localStorage.setItem(CURRENCY_KEY, currency); } catch { /* just for this visit */ }
+    closeMenus();
+    renderCurrency();
+    if (view === "explore") runSearch(); else renderSets();
+  });
+
+  // Profile: a name saved in this browser until Google sign-in exists.
+  const NAME_KEY = "vendr.name";
+  function renderProfile() {
+    let name = "";
+    try { name = localStorage.getItem(NAME_KEY) || ""; } catch { /* no saved name */ }
+    const shown = name || "Guest";
+    document.getElementById("profile-name").textContent = shown;
+    document.getElementById("profile-title").textContent = name ? `Hi, ${name}` : "Guest";
+    document.getElementById("avatar").textContent = shown.trim()[0].toUpperCase();
+    document.getElementById("name-input").value = name;
+  }
+  setupMenu("profile-btn", "profile-menu", () => document.getElementById("name-input").focus());
+  document.getElementById("name-input").addEventListener("input", event => {
+    try { localStorage.setItem(NAME_KEY, event.target.value.trim()); } catch { /* not saved */ }
+    const keepFocus = event.target.selectionStart;
+    renderProfile();
+    event.target.setSelectionRange(keepFocus, keepFocus);
+  });
+  document.getElementById("profile-clear-recent").addEventListener("click", () => {
+    saveRecentList([]);
+    renderChips();
+    closeMenus();
+  });
+
+  // Bell: news worked out from the data. New ones show a dot until the bell is opened.
+  const SEEN_KEY = "vendr.seenNotes";
+  let notes = [];
+  function shortDate(iso) {
+    return new Date(iso + "T12:00:00Z").toLocaleDateString([], { month: "short", day: "numeric" });
+  }
+  function daysFromToday(iso) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return Math.round((new Date(iso + "T00:00:00") - today) / 86400000);
+  }
+  function buildNotes(data) {
+    notes = [];
+    const sets = data.sets || [];
+    // Upcoming sets, soonest first.
+    sets.filter(s => s.released && daysFromToday(s.released) > 0)
+      .sort((a, b) => a.released.localeCompare(b.released))
+      .forEach(s => {
+        const days = daysFromToday(s.released);
+        notes.push({ id: `soon:${s.name}`, ico: "◆", cls: "hot", set: s.name,
+          title: `${s.name}${s.code ? ` (${s.code})` : ""} drops ${shortDate(s.released)}`,
+          text: days === 1 ? "Tomorrow" : `In ${days} days · cards and prices are already listed` });
+      });
+    // Sets out in the last 30 days.
+    sets.filter(s => s.released && daysFromToday(s.released) <= 0 && daysFromToday(s.released) > -30)
+      .forEach(s => notes.push({ id: `new:${s.name}`, ico: "★", cls: "", set: s.name,
+        title: `New set: ${s.name}`, text: `Released ${shortDate(s.released)}` }));
+    // The day's biggest movers, once there's a day to compare with.
+    const moved = cards.filter(c => c.change && (c.market ?? 0) >= 5);
+    if (moved.length) {
+      const up = moved.reduce((a, b) => (b.change.percent > a.change.percent ? b : a));
+      const down = moved.reduce((a, b) => (b.change.percent < a.change.percent ? b : a));
+      if (up.change.percent > 0) notes.push({ id: `up:${data.updated}`, ico: "▲", cls: "good", card: up.id,
+        title: `Biggest gain: ${up.name}`, text: `▲ ${up.change.percent.toFixed(1)}% ${sinceText()} · now ${money(up.market)}` });
+      if (down.change.percent < 0) notes.push({ id: `down:${data.updated}`, ico: "▼", cls: "bad", card: down.id,
+        title: `Biggest drop: ${down.name}`, text: `▼ ${Math.abs(down.change.percent).toFixed(1)}% ${sinceText()} · now ${money(down.market)}` });
+    }
+    notes.push({ id: `prices:${data.updated}`, ico: "●", cls: "good",
+      title: "Prices updated", text: `${cards.length.toLocaleString()} cards · ${whenUpdated(data)}` });
+  }
+  function seenIds() {
+    try { return new Set(JSON.parse(localStorage.getItem(SEEN_KEY)) || []); } catch { return new Set(); }
+  }
+  function renderBell() {
+    const seen = seenIds();
+    const unread = notes.filter(n => !seen.has(n.id)).length;
+    const badge = document.getElementById("bell-count");
+    badge.hidden = unread === 0;
+    badge.textContent = unread;
+    document.getElementById("bell-btn").setAttribute("aria-label", unread ? `Notifications, ${unread} new` : "Notifications");
+    document.getElementById("bell-menu").innerHTML =
+      `<div class="notes-head"><b>Notifications</b><span class="label">${notes.length}</span></div>` +
+      notes.map(n => `
+        <button type="button" class="note-item${seen.has(n.id) ? "" : " unread"}" ${n.set ? `data-set="${escapeHtml(n.set)}"` : ""} ${n.card ? `data-card="${escapeHtml(n.card)}"` : ""}>
+          <span class="ico ${n.cls}">${n.ico}</span>
+          <span><b>${escapeHtml(n.title)}</b><span>${escapeHtml(n.text)}</span></span>
+        </button>`).join("");
+  }
+  setupMenu("bell-btn", "bell-menu", () => {
+    // Opening the bell marks everything as seen; the dots stay until it closes.
+    try { localStorage.setItem(SEEN_KEY, JSON.stringify(notes.map(n => n.id))); } catch { /* not saved */ }
+    document.getElementById("bell-count").hidden = true;
+  });
+  document.getElementById("bell-menu").addEventListener("click", event => {
+    const item = event.target.closest(".note-item");
+    if (!item) return;
+    closeMenus();
+    renderBell();
+    if (item.dataset.card) return openCard(item.dataset.card);
+    if (item.dataset.set) {
+      filterEls.set.value = item.dataset.set;
+      searchBox.value = topInput.value = "";
+      sortSelect.value = "number";
+      showView("explore");
+      document.querySelector(".toolbar").scrollIntoView({ block: "start" });
+    }
+  });
+
+  // Gains and drops need two days of prices. Until then, say so instead of
+  // offering two sorts that would both just show the usual order.
+  function setupChangeSorts() {
+    const ready = cards.some(card => card.change);
+    for (const value of ["up", "down"]) {
+      const option = sortSelect.querySelector(`option[value="${value}"]`);
+      option.disabled = !ready;
+      option.textContent = (value === "up" ? "Biggest gains" : "Biggest drops") + (ready ? "" : " (soon)");
+      option.title = ready ? "" : "Needs two days of saved prices to compare";
+    }
+    if (!ready && ["up", "down"].includes(sortSelect.value)) sortSelect.value = "best";
+  }
+
   // ---------- Load the card data, then start ----------
   renderChips();
+  renderProfile();
   fetch("cards.json")
     .then(response => response.json())
     .then(data => {
@@ -893,13 +1295,22 @@
       document.getElementById("percents").textContent =
         `${pct(data.buyer_min_percent)} to ${pct(data.buyer_max_percent)}`;
       document.getElementById("updated").innerHTML =
-        `<span class="live">●</span> ${cards.length.toLocaleString()} cards<br>prices updated ${escapeHtml(whenUpdated(data))}`;
+        `<span class="live">●</span> ${cards.length.toLocaleString()} cards · prices updated ${escapeHtml(whenUpdated(data))}`;
 
+      if (data.rates) {
+        rates = { USD: 1, ...data.rates.rates };
+        ratesDate = data.rates.date;
+      }
+      if (!rates[currency]) currency = "USD";
+      renderCurrency();
       buildFilters();
+      setupChangeSorts();
+      buildNotes(data);
+      renderBell();
 
       // Use the search and card from the address (like ?q=luffy&card=123-Normal).
       const params = new URLSearchParams(location.search);
-      searchBox.value = params.get("q") || "";
+      searchBox.value = topInput.value = params.get("q") || "";
       showView("explore");
       if (params.get("card")) openCard(params.get("card"));
 

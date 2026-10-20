@@ -182,10 +182,9 @@ def create_tables(db):
 # Step 4: put it all together
 # ---------------------------------------------------------------------------
 
-def build_rows():
+def build_rows(groups):
     """Download every set and return a list of card rows ready to save."""
     rows = []
-    groups = fetch_json(f"{BASE_URL}/groups")
     print(f"Found {len(groups)} One Piece sets.")
 
     for group in groups:
@@ -328,11 +327,51 @@ def save_data_files(rows):
     (HISTORY_DIR / f"{today}.json").write_text(json.dumps(snapshot, separators=(",", ":")))
 
 
+def save_sets(groups):
+    """
+    data/sets.json: every set with its code and release date, newest first.
+    The site uses it for "Newest first" sorting and upcoming-set alerts.
+    """
+    sets = [
+        {
+            "id": group["groupId"],
+            "name": group["name"],
+            "code": group.get("abbreviation") or "",
+            "released": (group.get("publishedOn") or "")[:10] or None,
+        }
+        for group in groups
+    ]
+    sets.sort(key=lambda s: s["released"] or "", reverse=True)
+    (DATA_DIR / "sets.json").write_text(json.dumps({"sets": sets}, indent=1) + "\n")
+
+
+# Free daily exchange rates (European Central Bank), for the currency picker.
+RATES_URL = "https://api.frankfurter.dev/v1/latest?from=USD"
+
+
+def save_exchange_rates():
+    """
+    data/rates.json: how many of each currency one US dollar buys today.
+    If the rates service is down, keep yesterday's file; prices still work in USD.
+    """
+    try:
+        request = urllib.request.Request(RATES_URL, headers={"User-Agent": "VENDR/1.0"})
+        with urllib.request.urlopen(request, timeout=30) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        rates = {"base": "USD", "date": data["date"], "rates": data["rates"]}
+        (DATA_DIR / "rates.json").write_text(json.dumps(rates, indent=1) + "\n")
+    except Exception as error:  # any failure here must not stop the price update
+        print(f"Couldn't update exchange rates ({error}); keeping the last saved ones.")
+
+
 def main():
     print("Downloading One Piece prices from tcgcsv.com ...")
-    rows = build_rows()
+    groups = fetch_json(f"{BASE_URL}/groups")
+    rows = build_rows(groups)
     save_rows(rows)
     save_data_files(rows)
+    save_sets(groups)
+    save_exchange_rates()
     print(f"Done! Saved {len(rows)} card printings to {DB_PATH.name} and the data folder.")
 
 

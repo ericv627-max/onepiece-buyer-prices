@@ -1,0 +1,526 @@
+{
+ "sets": [
+  {
+   "id": 24833,
+   "name": "The Dominance of God",
+   "code": "OP18",
+   "released": "2026-11-20"
+  },
+  {
+   "id": 24834,
+   "name": "The Dominance of God Release Event Cards",
+   "code": "OP18 RE",
+   "released": "2026-11-13"
+  },
+  {
+   "id": 24820,
+   "name": "Extra Booster: One Piece Heroines Edition Vol. 2",
+   "code": "EB05",
+   "released": "2026-10-30"
+  },
+  {
+   "id": 24708,
+   "name": "Set Sail Deck Set",
+   "code": "SD01",
+   "released": "2026-09-18"
+  },
+  {
+   "id": 24736,
+   "name": "The World's Strongest Warriors",
+   "code": "OP17",
+   "released": "2026-08-28"
+  },
+  {
+   "id": 24775,
+   "name": "The World's Strongest Warriors Release Event Cards",
+   "code": "OP17 RE",
+   "released": "2026-08-21"
+  },
+  {
+   "id": 24749,
+   "name": "ST-31: Starter Deck 31 RED Monkey.D.Luffy",
+   "code": "ST-31",
+   "released": "2026-07-31"
+  },
+  {
+   "id": 24750,
+   "name": "ST-32: Starter Deck 32 GREEN Roronoa Zoro",
+   "code": "ST-32",
+   "released": "2026-07-31"
+  },
+  {
+   "id": 24751,
+   "name": "ST-33: Starter Deck 33 BLUE Kuzan",
+   "code": "ST-33",
+   "released": "2026-07-31"
+  },
+  {
+   "id": 24752,
+   "name": "ST-34: Starter Deck 34 PURPLE Charlotte Katakuri",
+   "code": "ST-34",
+   "released": "2026-07-31"
+  },
+  {
+   "id": 24753,
+   "name": "ST-35: Starter Deck 35 RED/BLACK Sabo",
+   "code": "ST-35",
+   "released": "2026-07-31"
+  },
+  {
+   "id": 24754,
+   "name": "ST-36: Starter Deck 36 YELLOW Eustass\"Captain\"Kid",
+   "code": "ST-36",
+   "released": "2026-07-31"
+  },
+  {
+   "id": 24678,
+   "name": "ST-30: Starter Deck 30 EX Luffy & Ace",
+   "code": "ST-30",
+   "released": "2026-06-12"
+  },
+  {
+   "id": 24664,
+   "name": "The Time of Battle",
+   "code": "OP16",
+   "released": "2026-06-12"
+  },
+  {
+   "id": 24677,
+   "name": "The Time of Battle Release Event Cards",
+   "code": "OP16 RE",
+   "released": "2026-06-05"
+  },
+  {
+   "id": 24637,
+   "name": "Adventure on Kami's Island",
+   "code": "OP15-EB04",
+   "released": "2026-04-03"
+  },
+  {
+   "id": 24638,
+   "name": "Adventure on Kami's Island Release Event Cards",
+   "code": "OP15 RE",
+   "released": "2026-03-27"
+  },
+  {
+   "id": 24545,
+   "name": "Extra Booster: One Piece Heroines Edition",
+   "code": "EB03",
+   "released": "2026-02-20"
+  },
+  {
+   "id": 24575,
+   "name": "ST-29: Starter Deck 29 Egghead",
+   "code": "ST-29",
+   "released": "2026-01-16"
+  },
+  {
+   "id": 24537,
+   "name": "The Azure Sea's Seven",
+   "code": "OP14-EB04",
+   "released": "2026-01-16"
+  },
+  {
+   "id": 24579,
+   "name": "The Azure Sea's Seven Release Event Cards",
+   "code": "OP14 RE",
+   "released": "2026-01-09"
+  },
+  {
+   "id": 24303,
+   "name": "Carrying On His Will",
+   "code": "OP13",
+   "released": "2025-11-07"
+  },
+  {
+   "id": 24498,
+   "name": "Carrying On His Will: 3rd Anniversary Tournament Cards",
+   "code": "OP13 ANN",
+   "released": "2025-10-31"
+  },
+  {
+   "id": 24306,
+   "name": "Learn Together Deck Set",
+   "code": "LT-01",
+   "released": "2025-10-03"
+  },
+  {
+   "id": 24305,
+   "name": "Premium Booster -The Best- Vol. 2",
+   "code": "PRB-02",
+   "released": "2025-10-03"
+  },
+  {
+   "id": 24304,
+   "name": "ST-22: Starter Deck 22 Ace & Newgate",
+   "code": "ST-22",
+   "released": "2025-09-05"
+  },
+  {
+   "id": 24302,
+   "name": "Legacy of the Master",
+   "code": "OP12",
+   "released": "2025-08-22"
+  },
+  {
+   "id": 24406,
+   "name": "Legacy of the Master Release Event Cards",
+   "code": "OP12 RE",
+   "released": "2025-08-15"
+  },
+  {
+   "id": 24241,
+   "name": "A Fist of Divine Speed",
+   "code": "OP11",
+   "released": "2025-06-06"
+  },
+  {
+   "id": 24282,
+   "name": "ST-23: Starter Deck 23 RED Shanks",
+   "code": "ST-23",
+   "released": "2025-06-06"
+  },
+  {
+   "id": 24283,
+   "name": "ST-24: Starter Deck 24 GREEN Jewelry Bonney",
+   "code": "ST-24",
+   "released": "2025-06-06"
+  },
+  {
+   "id": 24284,
+   "name": "ST-25: Starter Deck 25 BLUE Buggy",
+   "code": "ST-25",
+   "released": "2025-06-06"
+  },
+  {
+   "id": 24285,
+   "name": "ST-26: Starter Deck 26 PURPLE/BLACK Monkey.D.Luffy",
+   "code": "ST-26",
+   "released": "2025-06-06"
+  },
+  {
+   "id": 24286,
+   "name": "ST-27: Starter Deck 27 BLACK Marshall.D.Teach",
+   "code": "ST-27",
+   "released": "2025-06-06"
+  },
+  {
+   "id": 24287,
+   "name": "ST-28: Starter Deck 28 GREEN/YELLOW Yamato",
+   "code": "ST-28",
+   "released": "2025-06-06"
+  },
+  {
+   "id": 24242,
+   "name": "A Fist of Divine Speed Release Event Cards",
+   "code": "OP11 RE",
+   "released": "2025-05-30"
+  },
+  {
+   "id": 23834,
+   "name": "Extra Booster: Anime 25th Collection",
+   "code": "EB02",
+   "released": "2025-05-09"
+  },
+  {
+   "id": 23766,
+   "name": "Royal Blood",
+   "code": "OP10",
+   "released": "2025-03-21"
+  },
+  {
+   "id": 24068,
+   "name": "Royal Blood Release Event Cards",
+   "code": "OP10 RE",
+   "released": "2025-03-14"
+  },
+  {
+   "id": 23991,
+   "name": "ST-21: Starter Deck 21 EX Gear 5",
+   "code": "ST-21",
+   "released": "2025-03-14"
+  },
+  {
+   "id": 23589,
+   "name": "Emperors in the New World",
+   "code": "OP09",
+   "released": "2024-12-13"
+  },
+  {
+   "id": 23590,
+   "name": "Emperors in the New World: 2nd Anniversary Tournament Cards",
+   "code": "OP09 ANN",
+   "released": "2024-12-06"
+  },
+  {
+   "id": 23907,
+   "name": "One Piece Demo Deck Cards",
+   "code": "OP-DD",
+   "released": "2024-12-05"
+  },
+  {
+   "id": 23890,
+   "name": "Revision Pack Cards",
+   "code": "OP-RP",
+   "released": "2024-11-26"
+  },
+  {
+   "id": 23496,
+   "name": "Premium Booster -The Best-",
+   "code": "PRB-01",
+   "released": "2024-11-08"
+  },
+  {
+   "id": 23490,
+   "name": "ST-15: Starter Deck 15 RED Edward.Newgate",
+   "code": "ST-15",
+   "released": "2024-10-25"
+  },
+  {
+   "id": 23491,
+   "name": "ST-16: Starter Deck 16 GREEN Uta",
+   "code": "ST-16",
+   "released": "2024-10-25"
+  },
+  {
+   "id": 23492,
+   "name": "ST-17: Starter Deck 17 BLUE Donquixote Doflamingo",
+   "code": "ST-17",
+   "released": "2024-10-25"
+  },
+  {
+   "id": 23493,
+   "name": "ST-18: Starter Deck 18 PURPLE Monkey.D.Luffy",
+   "code": "ST-18",
+   "released": "2024-10-25"
+  },
+  {
+   "id": 23494,
+   "name": "ST-19: Starter Deck 19 BLACK Smoker",
+   "code": "ST-19",
+   "released": "2024-10-25"
+  },
+  {
+   "id": 23495,
+   "name": "ST-20: Starter Deck 20 YELLOW Charlotte Katakuri",
+   "code": "ST-20",
+   "released": "2024-10-25"
+  },
+  {
+   "id": 23462,
+   "name": "Two Legends",
+   "code": "OP08",
+   "released": "2024-09-13"
+  },
+  {
+   "id": 23737,
+   "name": "Two Legends Pre-Release Cards",
+   "code": "OP08 PRE",
+   "released": "2024-09-06"
+  },
+  {
+   "id": 23489,
+   "name": "ST-14: Starter Deck 14 3D2Y",
+   "code": "ST-14",
+   "released": "2024-08-16"
+  },
+  {
+   "id": 23387,
+   "name": "500 Years in the Future",
+   "code": "OP07",
+   "released": "2024-06-28"
+  },
+  {
+   "id": 23512,
+   "name": "500 Years in the Future Pre-Release Cards",
+   "code": "OP07 PRE",
+   "released": "2024-06-21"
+  },
+  {
+   "id": 23333,
+   "name": "Extra Booster: Memorial Collection",
+   "code": "EB01",
+   "released": "2024-05-03"
+  },
+  {
+   "id": 23349,
+   "name": "ST-13: Ultra Deck The Three Brothers",
+   "code": "ST-13",
+   "released": "2024-04-19"
+  },
+  {
+   "id": 23348,
+   "name": "ST-12: Starter Deck 12 Zoro and Sanji",
+   "code": "ST-12",
+   "released": "2024-03-15"
+  },
+  {
+   "id": 23272,
+   "name": "Wings of the Captain",
+   "code": "OP06",
+   "released": "2024-03-15"
+  },
+  {
+   "id": 23424,
+   "name": "Wings of the Captain Pre-Release Cards",
+   "code": "OP06 PRE",
+   "released": "2024-03-08"
+  },
+  {
+   "id": 23250,
+   "name": "ST-11: Starter Deck 11 Uta",
+   "code": "ST-11",
+   "released": "2024-02-02"
+  },
+  {
+   "id": 23213,
+   "name": "Awakening of the New Era",
+   "code": "OP05",
+   "released": "2023-12-08"
+  },
+  {
+   "id": 23368,
+   "name": "Awakening of the New Era: 1st Anniversary Tournament Cards",
+   "code": "OP05 ANN",
+   "released": "2023-12-08"
+  },
+  {
+   "id": 23243,
+   "name": "ST-10: Ultra Deck The Three Captains",
+   "code": "ST-10",
+   "released": "2023-11-10"
+  },
+  {
+   "id": 23304,
+   "name": "One Piece Collection Sets",
+   "code": "OP-CS",
+   "released": "2023-11-03"
+  },
+  {
+   "id": 23024,
+   "name": "Kingdoms of Intrigue",
+   "code": "OP04",
+   "released": "2023-09-22"
+  },
+  {
+   "id": 23297,
+   "name": "Kingdoms of Intrigue Pre-Release Cards",
+   "code": "OP04 PRE",
+   "released": "2023-09-15"
+  },
+  {
+   "id": 22956,
+   "name": "ST-08: Starter Deck 8 Monkey.D.Luffy",
+   "code": "ST-08",
+   "released": "2023-08-11"
+  },
+  {
+   "id": 22957,
+   "name": "ST-09: Starter Deck 9 Yamato",
+   "code": "ST-09",
+   "released": "2023-08-11"
+  },
+  {
+   "id": 22890,
+   "name": "Pillars of Strength",
+   "code": "OP03",
+   "released": "2023-06-30"
+  },
+  {
+   "id": 23232,
+   "name": "Pillars of Strength Pre-Release Cards",
+   "code": "OP03 PRE",
+   "released": "2023-06-30"
+  },
+  {
+   "id": 22930,
+   "name": "ST-07: Starter Deck 7 Big Mom Pirates",
+   "code": "ST-07",
+   "released": "2023-06-30"
+  },
+  {
+   "id": 17698,
+   "name": "Paramount War",
+   "code": "OP02",
+   "released": "2023-03-10"
+  },
+  {
+   "id": 17699,
+   "name": "ST-06: Starter Deck 6 Absolute Justice",
+   "code": "ST-06",
+   "released": "2023-03-10"
+  },
+  {
+   "id": 22934,
+   "name": "Paramount War Pre-Release Cards",
+   "code": "OP02 PRE",
+   "released": "2023-03-03"
+  },
+  {
+   "id": 17687,
+   "name": "ST-05: Starter Deck 5 Film Edition",
+   "code": "ST-05",
+   "released": "2023-02-03"
+  },
+  {
+   "id": 3188,
+   "name": "Romance Dawn",
+   "code": "OP01",
+   "released": "2022-12-02"
+  },
+  {
+   "id": 3189,
+   "name": "ST-01: Starter Deck 1 Straw Hat Crew",
+   "code": "ST-01",
+   "released": "2022-12-02"
+  },
+  {
+   "id": 3191,
+   "name": "ST-02: Starter Deck 2 Worst Generation",
+   "code": "ST-02",
+   "released": "2022-12-02"
+  },
+  {
+   "id": 3192,
+   "name": "ST-03: Starter Deck 3 The Seven Warlords of The Sea",
+   "code": "ST-03",
+   "released": "2022-12-02"
+  },
+  {
+   "id": 3190,
+   "name": "ST-04: Starter Deck 4 Animal Kingdom Pirates",
+   "code": "ST-04",
+   "released": "2022-12-02"
+  },
+  {
+   "id": 17675,
+   "name": "One Piece Promotion Cards",
+   "code": "OP-PR",
+   "released": "2022-09-30"
+  },
+  {
+   "id": 17659,
+   "name": "ST-01: Starter Deck 1 Straw Hat Crew (Super Pre-Release Edition)",
+   "code": "ST-01 PRE",
+   "released": "2022-09-30"
+  },
+  {
+   "id": 17658,
+   "name": "ST-02: Starter Deck 2 Worst Generation (Super Pre-Release Edition)",
+   "code": "ST-02 PRE",
+   "released": "2022-09-30"
+  },
+  {
+   "id": 17660,
+   "name": "ST-03: Starter Deck 3 The Seven Warlords of The Sea (Super Pre-Release Edition)",
+   "code": "ST-03 PRE",
+   "released": "2022-09-30"
+  },
+  {
+   "id": 17661,
+   "name": "ST-04: Starter Deck 4 Animal Kingdom Pirates (Super Pre-Release Edition)",
+   "code": "ST-04 PRE",
+   "released": "2022-09-30"
+  }
+ ]
+}

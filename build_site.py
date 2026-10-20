@@ -34,6 +34,8 @@ HERE = Path(__file__).parent
 DATA_DIR = HERE / "data"
 CATALOG_PATH = DATA_DIR / "catalog.json"
 HISTORY_DIR = DATA_DIR / "history"
+SETS_PATH = DATA_DIR / "sets.json"
+RATES_PATH = DATA_DIR / "rates.json"
 SITE_DIR = HERE / "site"
 
 # ---------------------------------------------------------------------------
@@ -54,6 +56,11 @@ def buyer_prices(listing_price):
         round(listing_price * BUYER_MIN_PERCENT, 2),
         round(listing_price * BUYER_MAX_PERCENT, 2),
     )
+
+
+def load_optional(path, default):
+    """Read a JSON file if it's there, otherwise use the default."""
+    return json.loads(path.read_text()) if path.exists() else default
 
 
 def load_previous_prices(today):
@@ -90,6 +97,10 @@ def main():
 
     catalog = json.loads(CATALOG_PATH.read_text())
     previous_date, previous = load_previous_prices(catalog["updated"])
+    # Optional extras: set release dates and exchange rates. The site works without them.
+    sets = load_optional(SETS_PATH, {"sets": []})["sets"]
+    released = {s["name"]: s["released"] for s in sets}
+    rates = load_optional(RATES_PATH, None)
 
     cards = []
     for row in sorted(catalog["cards"], key=lambda r: (r["name"], r["card_number"], r["printing"])):
@@ -101,6 +112,7 @@ def main():
             "set": row["set_name"],
             "number": row["card_number"],
             "rarity": row["rarity"],
+            "released": released.get(row["set_name"]),  # the set's release date, for "Newest first"
             "printing": row["printing"],
             "foil": row["sub_type"] == "Foil",
             "image": row["image_url"],
@@ -122,6 +134,8 @@ def main():
         "change_since": previous_date,          # the day the arrows compare against
         "buyer_min_percent": BUYER_MIN_PERCENT,
         "buyer_max_percent": BUYER_MAX_PERCENT,
+        "rates": rates,                         # {"base": "USD", "date": ..., "rates": {"EUR": 0.89, ...}}
+        "sets": sets,                           # every set with code and release date, newest first
         "cards": cards,
     }
     # separators=(",", ":") leaves out spaces so the file downloads faster.
