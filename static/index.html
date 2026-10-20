@@ -22,9 +22,10 @@
       --line: #25253f;
       --fg: #e8e8f4;
       --muted: #9090b0;        /* still 6:1 on the surface colour, so it stays readable */
+      --faint: #5c5c7c;        /* placeholders and "soon" labels only */
       --cyan: #00f0ff;         /* main neon: focus, links, the logo */
-      --magenta: #ff2bd6;      /* action buttons and the slogan */
-      --yellow: #f5ee30;       /* warnings and "note" text */
+      --magenta: #ff2bd6;      /* the slogan and printing tags */
+      --yellow: #f5ee30;       /* notes and foil tags */
       --good: #3dff8f;         /* buyer prices, and prices going up */
       --down: #ff4d6d;         /* prices going down */
       --display: "Orbitron", "Arial Black", sans-serif;
@@ -33,13 +34,13 @@
       color-scheme: dark;
     }
 
-    /* ---------- Page layout ---------- */
+    /* ---------- Page ---------- */
     * { box-sizing: border-box; }
     body {
       margin: 0; min-height: 100vh; color: var(--fg); font-family: var(--body); font-size: 15px;
       background:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 240, 255, 0.12), transparent 70%),
-        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(255, 43, 214, 0.08), transparent 70%),
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 240, 255, 0.10), transparent 70%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(255, 43, 214, 0.07), transparent 70%),
         var(--bg);
       background-attachment: fixed;
     }
@@ -47,201 +48,343 @@
     body::before {
       content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
       background-image:
-        linear-gradient(rgba(0, 240, 255, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 240, 255, 0.035) 1px, transparent 1px);
+        linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
       background-size: 44px 44px;
-      mask-image: linear-gradient(to bottom, black, transparent 70%);
+      mask-image: linear-gradient(to bottom, black, transparent 60%);
     }
     body::after {
-      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
-      background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px);
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 100;
+      background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 3px);
     }
-    main { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 36px 16px 56px; display: grid; gap: 16px; }
+    .wrap { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; padding: 0 16px; }
+    button, select, input { font: inherit; color: inherit; }
+    [hidden] { display: none !important; }
 
-    /* ---------- Logo and slogan ---------- */
-    header { display: grid; gap: 6px; }
-    .brand { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 16px; }
-    h1 {
-      margin: 0; font-family: var(--display); font-weight: 900; font-size: clamp(2.6rem, 8vw, 4rem);
-      letter-spacing: 0.08em; line-height: 1; color: var(--fg);
-      text-shadow: -2px 0 var(--magenta), 2px 0 var(--cyan), 0 0 24px rgba(0, 240, 255, 0.35);
+    /* ---------- Top bar (like Collectr's: logo, sections, status) ---------- */
+    .topbar {
+      position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--line);
+      background: rgba(7, 7, 13, 0.86); backdrop-filter: blur(10px);
     }
-    .slogan {
-      margin: 0; font-family: var(--mono); font-size: 0.9rem; letter-spacing: 0.18em; text-transform: uppercase;
-      color: var(--magenta);
+    .topbar .wrap { display: flex; align-items: center; gap: 22px; height: 60px; }
+    .logo { display: flex; flex-direction: column; text-decoration: none; color: var(--fg); line-height: 1; }
+    .logo b {
+      font-family: var(--display); font-weight: 900; font-size: 1.55rem; letter-spacing: 0.1em;
+      text-shadow: -1.5px 0 var(--magenta), 1.5px 0 var(--cyan), 0 0 18px rgba(0, 240, 255, 0.35);
     }
-    .sub { margin: 0; font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
-    .sub .live { color: var(--good); }
-    .note {
-      border: 1px solid var(--line); border-left: 3px solid var(--yellow); background: rgba(245, 238, 48, 0.05);
-      padding: 9px 14px; line-height: 1.45; font-size: 0.92rem; color: var(--muted);
+    .logo small { font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--magenta); margin-top: 4px; }
+    .tabs { display: flex; gap: 4px; }
+    .tabs button {
+      background: none; border: 0; border-bottom: 2px solid transparent; padding: 18px 10px 16px; cursor: pointer;
+      font-weight: 600; color: var(--muted);
     }
-    .note strong { color: var(--yellow); font-weight: 600; }
+    .tabs button:hover, .tabs button:focus-visible { color: var(--fg); outline: none; }
+    .tabs button[aria-current="page"] { color: var(--cyan); border-bottom-color: var(--cyan); }
+    .tabs button:disabled { color: var(--faint); cursor: default; }
+    .tabs button:disabled small { font-family: var(--mono); font-size: 0.6rem; text-transform: uppercase; margin-left: 4px; }
+    .status-line { margin-left: auto; font-family: var(--mono); font-size: 0.74rem; color: var(--muted); text-align: right; }
+    .status-line .live { color: var(--good); }
 
-    /* ---------- The search bar ---------- */
-    .search-wrap { position: relative; }
+    /* ---------- "Find a card" panel ---------- */
+    .finder {
+      margin: 22px 0 14px; padding: 18px; background: var(--surface); border: 1px solid var(--line);
+      clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+      display: grid; gap: 12px;
+    }
+    .finder h1 { margin: 0; font-size: 1.15rem; font-weight: 700; }
+    .search-row { display: flex; gap: 8px; }
+    .search-wrap { position: relative; flex: 1; }
     .search-wrap::before {
-      content: ">"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
-      font-family: var(--mono); font-weight: 600; font-size: 1.2rem; color: var(--cyan); pointer-events: none;
+      content: ">"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      font-family: var(--mono); font-weight: 600; color: var(--cyan); pointer-events: none;
     }
     #search {
-      width: 100%; padding: 16px 120px 16px 40px; font: inherit; font-family: var(--mono); font-size: 1.1rem;
-      color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 0;
-      clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
-      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%; padding: 12px 120px 12px 34px; font-family: var(--mono); font-size: 1rem;
+      background: var(--bg); border: 1px solid var(--line); border-radius: 0;
     }
-    #search::placeholder { color: #5c5c7c; }
-    #search:focus-visible { outline: none; border-color: var(--cyan); box-shadow: inset 0 0 0 1px var(--cyan), 0 0 24px rgba(0, 240, 255, 0.15); }
-    #search::-webkit-search-cancel-button { filter: invert(1) hue-rotate(150deg); }
+    #search::placeholder { color: var(--faint); }
+    #search:focus-visible { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan), 0 0 22px rgba(0, 240, 255, 0.14); }
+    #search::-webkit-search-cancel-button { display: none; }
     .search-hint {
-      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
-      font-family: var(--mono); font-size: 0.72rem; color: var(--muted); pointer-events: none;
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      font-family: var(--mono); font-size: 0.7rem; color: var(--muted); pointer-events: none;
     }
-    .search-hint kbd {
-      font-family: inherit; border: 1px solid var(--line); padding: 1px 5px; color: var(--cyan);
+    .search-hint kbd { font-family: inherit; border: 1px solid var(--line); padding: 1px 5px; color: var(--cyan); }
+    .btn {
+      padding: 0 16px; border: 1px solid var(--line); background: var(--surface-2); cursor: pointer; font-weight: 600;
     }
+    .btn:hover, .btn:focus-visible { border-color: var(--cyan); color: var(--cyan); outline: none; }
+    .btn.primary { background: var(--cyan); color: var(--bg); border-color: var(--cyan); }
+    .btn.primary:hover, .btn.primary:focus-visible { background: var(--magenta); border-color: var(--magenta); color: var(--bg); }
+    .note { margin: 0; font-size: 0.85rem; color: var(--muted); }
+    .note strong { color: var(--yellow); font-weight: 600; }
 
     /* ---------- Chips: recent searches and example searches ---------- */
     .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.85rem; }
-    .chips-label {
-      font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
-      margin-right: 4px;
-    }
-    .chip {
-      display: inline-flex; align-items: center; font: inherit; font-size: 0.85rem; color: var(--fg);
-      background: var(--surface); border: 1px solid var(--line); border-radius: 0;
-    }
-    .chip button {
-      font: inherit; color: inherit; background: none; border: 0; padding: 4px 10px; cursor: pointer;
-    }
-    .chip .remove { padding: 4px 8px 4px 2px; color: var(--muted); }
+    .chips-label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+    .chip { display: inline-flex; align-items: center; background: var(--bg); border: 1px solid var(--line); }
+    .chip button { background: none; border: 0; padding: 3px 10px; cursor: pointer; font-size: 0.85rem; }
+    .chip .remove { padding: 3px 8px 3px 2px; color: var(--muted); }
     .chip:hover, .chip:focus-within { border-color: var(--cyan); color: var(--cyan); }
     .chip .remove:hover, .chip .remove:focus-visible { color: var(--magenta); }
     .chip button:focus-visible { outline: none; text-decoration: underline; }
     .link-btn {
-      font: inherit; font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em;
+      font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em;
       color: var(--muted); background: none; border: 0; padding: 4px 6px; cursor: pointer;
     }
     .link-btn:hover, .link-btn:focus-visible { color: var(--magenta); outline: none; }
 
-    /* ---------- Section heading above the results ---------- */
-    .results-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    #status { margin: 0; color: var(--muted); font-size: 0.92rem; }
-    #status b { font-family: var(--mono); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cyan); margin-right: 8px; }
+    /* ---------- Toolbar: result count, filters button (phones), sort ---------- */
+    .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+    #count { margin: 0; color: var(--muted); font-size: 0.9rem; flex: 1; min-width: 200px; }
+    #count b { color: var(--fg); }
+    .sort { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted); }
+    select {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 7px 10px; color: var(--fg);
+    }
+    select:focus-visible, input:focus-visible { outline: none; border-color: var(--cyan); }
+    #filters-toggle { display: none; height: 34px; }
 
-    /* ---------- The grid of card results ---------- */
-    #results { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
-    .card {
-      position: relative; background: linear-gradient(180deg, var(--surface-2), var(--surface));
-      border: 1px solid var(--line); padding: 12px; display: flex; flex-direction: column; gap: 4px; min-width: 0;
-      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+    /* ---------- Two columns: filters on the left, cards on the right ---------- */
+    .layout { display: grid; grid-template-columns: 236px 1fr; gap: 18px; align-items: start; }
+    .layout.no-filters { grid-template-columns: 1fr; }
+    .filters {
+      position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto;
+      background: var(--surface); border: 1px solid var(--line); padding: 14px; display: grid; gap: 18px;
+    }
+    .filters h2 { margin: 0 0 2px; font-size: 0.95rem; }
+    .filters p.help { margin: 0 0 8px; font-size: 0.78rem; color: var(--muted); }
+    .filters label.check { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 0.88rem; cursor: pointer; }
+    .filters label.check span.n { margin-left: auto; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+    .filters input[type="checkbox"] { accent-color: var(--cyan); width: 15px; height: 15px; margin: 0; }
+    .filters select { width: 100%; }
+    .range { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); }
+    .range input {
+      width: 100%; min-width: 0; padding: 6px 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 0;
+      font-family: var(--mono); font-size: 0.85rem;
+    }
+    .filters-head { display: flex; justify-content: space-between; align-items: baseline; }
+
+    /* ---------- Card tiles ---------- */
+    #results { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 12px; }
+    .tile {
+      display: flex; flex-direction: column; gap: 3px; padding: 10px; min-width: 0; text-decoration: none; color: inherit;
+      background: linear-gradient(180deg, var(--surface-2), var(--surface)); border: 1px solid var(--line);
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
       transition: border-color 0.15s, transform 0.15s;
     }
-    .card:hover { border-color: rgba(0, 240, 255, 0.55); transform: translateY(-2px); }
-    .card img {
-      width: 100%; aspect-ratio: 5 / 7;  /* trading-card shape */
-      object-fit: contain; background: var(--bg); margin-bottom: 6px;
+    .tile:hover, .tile:focus-visible { border-color: rgba(0, 240, 255, 0.6); transform: translateY(-2px); outline: none; }
+    .tile img { width: 100%; aspect-ratio: 5 / 7; object-fit: contain; background: var(--bg); margin-bottom: 6px; }
+    .tile .name {
+      font-weight: 600; font-size: 0.92rem; line-height: 1.25; overflow-wrap: anywhere;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
-    /* ---------- Up/down arrows (market price since the previous day) ---------- */
-    .offer-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-    .move {
-      font-family: var(--mono); font-size: 0.8rem; font-weight: 600; white-space: nowrap;
-      padding: 1px 7px; border: 1px solid currentColor;
-    }
+    .tile .set { font-size: 0.78rem; color: var(--cyan); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tile .meta { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tile .price-row { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; margin-top: auto; padding-top: 6px; }
+    .tile .offer { font-size: 1.15rem; font-weight: 700; color: var(--good); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .tile .offer.long { font-size: 0.98rem; }
+    .tile .offer.longer { font-size: 0.86rem; }
+    .tile .offer.longest { font-size: 0.74rem; }
+    .detail .offer.longest { font-size: 1.5rem; }
+    .tile .none { font-size: 0.85rem; color: var(--muted); }
+    .tile .sub-row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+    .tile .sub { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Up/down change, used on tiles and in the card detail. */
+    .move { font-family: var(--mono); font-size: 0.74rem; font-weight: 600; white-space: nowrap; }
     .up { color: var(--good); }
     .down { color: var(--down); }
     .flat { color: var(--muted); }
-    .ref .up, .ref .down, .ref .flat { margin-right: 6px; }
-    .name { font-weight: 600; font-size: 1rem; overflow-wrap: anywhere; }
-    .meta { color: var(--muted); font-size: 0.85rem; }
-    .meta b { font-family: var(--mono); font-weight: 600; color: var(--cyan); }
-    .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+
+    #more { display: block; margin: 18px auto 0; height: 40px; }
+    .empty { grid-column: 1 / -1; padding: 30px 10px; color: var(--muted); text-align: center; }
+
+    /* ---------- Sets view ---------- */
+    .set-tile {
+      display: grid; grid-template-columns: 54px 1fr; gap: 10px; align-items: center; padding: 10px; text-align: left; cursor: pointer;
+      background: var(--surface); border: 1px solid var(--line);
+    }
+    .set-tile:hover, .set-tile:focus-visible { border-color: var(--cyan); outline: none; }
+    .set-tile img { width: 54px; aspect-ratio: 5 / 7; object-fit: cover; background: var(--bg); }
+    .set-tile b { display: block; font-size: 0.9rem; line-height: 1.25; }
+    .set-tile span { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+    #results.sets { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+
+    /* ---------- Card detail (opens over the page, like Collectr's product page) ---------- */
+    dialog {
+      width: min(860px, calc(100vw - 24px)); max-height: calc(100vh - 24px); padding: 0; color: var(--fg);
+      background: var(--surface); border: 1px solid var(--cyan); box-shadow: 0 0 40px rgba(0, 240, 255, 0.18);
+    }
+    dialog::backdrop { background: rgba(3, 3, 8, 0.78); backdrop-filter: blur(3px); }
+    .detail { display: grid; grid-template-columns: 300px 1fr; gap: 22px; padding: 22px; }
+    .detail img { width: 100%; aspect-ratio: 5 / 7; object-fit: contain; background: var(--bg); }
+    .detail h2 { margin: 0 34px 4px 0; font-size: 1.5rem; line-height: 1.15; }
+    .detail .set { color: var(--cyan); font-size: 0.95rem; }
+    .detail .tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0 16px; }
     .tag {
       font-family: var(--mono); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
       color: var(--magenta); border: 1px solid rgba(255, 43, 214, 0.45); padding: 1px 6px;
     }
     .tag.foil { color: var(--yellow); border-color: rgba(245, 238, 48, 0.45); }
-    .prices { margin: 8px 0; display: grid; gap: 2px; font-variant-numeric: tabular-nums; }
-    .prices div { display: flex; justify-content: space-between; gap: 8px; }
-    .prices span:last-child { white-space: nowrap; }
-    .offer-label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
-    /* The buyer range is the answer; listing and market are just the working. */
-    .offer {
-      font-family: var(--body); font-size: 1.75rem; font-weight: 700; line-height: 1.1; color: var(--good);
-      text-shadow: 0 0 14px rgba(61, 255, 143, 0.35); margin-bottom: 6px; white-space: nowrap;
+    .tag.plain { color: var(--muted); border-color: var(--line); }
+    .label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+    .detail .label, .detail .offer { display: block; }
+    .detail .offer { font-size: 2.1rem; font-weight: 700; color: var(--good); text-shadow: 0 0 16px rgba(61, 255, 143, 0.35); line-height: 1.1; }
+    .detail .rows { margin: 14px 0 18px; display: grid; gap: 6px; font-variant-numeric: tabular-nums; }
+    .detail .rows div { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+    .detail .rows span:first-child { color: var(--muted); }
+    .detail .chart-note { font-size: 0.85rem; color: var(--muted); margin: 0 0 18px; }
+    .detail a.buy {
+      display: inline-block; padding: 10px 16px; font-weight: 700; text-decoration: none; color: var(--bg); background: var(--cyan);
     }
-    /* Long ranges ("$1,079.96 – $1,199.95") step down so they stay on one line. */
-    .offer.long { font-size: 1.4rem; }
-    .offer.longer { font-size: 1.15rem; }
-    .none { font-size: 1.2rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
-    .ref { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
-    .card a {
-      margin-top: auto; text-align: center; padding: 9px 6px; font-weight: 700; font-size: 0.9rem; text-decoration: none; white-space: nowrap;
-      color: var(--bg); background: var(--cyan);
-      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+    .detail a.buy:hover, .detail a.buy:focus-visible { background: var(--magenta); outline: none; }
+    .close {
+      position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; background: none; border: 1px solid var(--line);
+      cursor: pointer; font-size: 1.1rem;
     }
-    .card a:hover, .card a:focus-visible { background: var(--magenta); outline: none; }
+    .close:hover, .close:focus-visible { border-color: var(--magenta); color: var(--magenta); outline: none; }
 
-    footer { color: var(--muted); font-size: 0.82rem; line-height: 1.5; font-family: var(--mono); }
+    footer { margin: 34px 0 30px; color: var(--muted); font-size: 0.8rem; font-family: var(--mono); line-height: 1.6; }
 
-    /* Phones: smaller pictures so prices fit on screen; drop the keyboard hint. */
+    /* ---------- Tablets and phones ---------- */
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      #filters-toggle { display: inline-block; }
+      .filters { display: none; position: static; max-height: none; }
+      .filters.open { display: grid; }
+      .status-line { display: none; }
+      .detail { grid-template-columns: 1fr; }
+      .detail img { width: 60%; justify-self: center; }
+    }
     @media (max-width: 520px) {
-      .card img { width: 60%; align-self: center; }
+      .topbar .wrap { gap: 12px; }
+      .tabs button { padding: 18px 6px 16px; font-size: 0.85rem; }
+      .tabs button:disabled { display: none; }
       .search-hint { display: none; }
-      #search { padding-right: 16px; }
+      #search { padding-right: 12px; }
+      .search-row .btn:not(.primary) { display: none; }
+      #results { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .card, #search { transition: none; }
-      .card:hover { transform: none; }
+      .tile { transition: none; }
+      .tile:hover { transform: none; }
     }
   </style>
 </head>
 <body>
-<main>
-  <header>
-    <div class="brand">
-      <h1>VENDR</h1>
-      <p class="slogan">Price it. Stack it. Flip it.</p>
-    </div>
-    <p class="sub" id="updated">Loading prices...</p>
-  </header>
 
-  <div class="note">
-    <strong>Prices reflect all conditions.</strong>
-    Buyer offer is <span id="percents">80% to 90%</span> of the lowest TCGplayer listing.
+<header class="topbar">
+  <div class="wrap">
+    <a class="logo" href="./" aria-label="VENDR home"><b>VENDR</b><small>Price it. Stack it. Flip it.</small></a>
+    <nav class="tabs" aria-label="Sections">
+      <button type="button" data-view="explore" aria-current="page">Explore</button>
+      <button type="button" data-view="sets">Sets</button>
+      <button type="button" disabled title="Coming with Google login">Portfolio<small>soon</small></button>
+      <button type="button" disabled title="Coming once a few days of price history are saved">Showcase<small>soon</small></button>
+    </nav>
+    <p class="status-line" id="updated">Loading prices...</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="finder" aria-labelledby="finder-title">
+    <h1 id="finder-title">Find a card</h1>
+    <form class="search-row" id="search-form" role="search">
+      <div class="search-wrap">
+        <input id="search" type="search" autocomplete="off" spellcheck="false" aria-label="Search cards"
+               placeholder="Card name, number (OP01-001), set, or printing">
+        <span class="search-hint" id="search-hint" hidden><kbd>Tab</kbd> to search this</span>
+      </div>
+      <button type="submit" class="btn primary">Search</button>
+      <button type="button" class="btn" id="clear">Clear</button>
+    </form>
+    <!-- Filled in by the script: recent searches if there are any, otherwise example searches. -->
+    <div class="chips" id="chips"></div>
+    <p class="note"><strong>Buyer pays</strong> = <span id="percents">80% to 90%</span> of the lowest TCGplayer listing. Prices reflect all conditions.</p>
+  </section>
+
+  <div class="toolbar">
+    <p id="count"></p>
+    <button type="button" class="btn" id="filters-toggle" aria-expanded="false" aria-controls="filters">Filters</button>
+    <label class="sort" id="sort-wrap">Sort by
+      <select id="sort">
+        <option value="best">Best match</option>
+        <option value="price-desc">Price: high to low</option>
+        <option value="price-asc">Price: low to high</option>
+        <option value="up">Biggest gains</option>
+        <option value="down">Biggest drops</option>
+        <option value="name">Name A–Z</option>
+        <option value="number">Card number</option>
+      </select>
+    </label>
   </div>
 
-  <div class="search-wrap">
-    <input id="search" type="search" autocomplete="off" spellcheck="false" aria-label="Search cards"
-           placeholder="Card name, number (OP01-001), set, or printing">
-    <span class="search-hint" id="search-hint" hidden><kbd>Tab</kbd> to search this</span>
-  </div>
+  <div class="layout">
+    <aside class="filters" id="filters" aria-label="Filters">
+      <div class="filters-head"><h2>Filters</h2><button type="button" class="link-btn" id="reset-filters">Reset</button></div>
+      <div>
+        <h2>Set</h2>
+        <p class="help">Show cards from one set.</p>
+        <select id="f-set"><option value="">All sets</option></select>
+      </div>
+      <div>
+        <h2>Market price</h2>
+        <p class="help">Between these amounts (inclusive).</p>
+        <div class="range">
+          <input id="f-min" type="number" min="0" step="1" inputmode="decimal" placeholder="$ Min" aria-label="Minimum price">
+          to
+          <input id="f-max" type="number" min="0" step="1" inputmode="decimal" placeholder="$ Max" aria-label="Maximum price">
+        </div>
+      </div>
+      <div>
+        <h2>Rarity</h2>
+        <div id="f-rarity"></div>
+      </div>
+      <div>
+        <h2>Printing</h2>
+        <div id="f-printing"></div>
+      </div>
+      <div>
+        <h2>Other</h2>
+        <label class="check"><input type="checkbox" id="f-foil"> Foil only</label>
+        <label class="check"><input type="checkbox" id="f-listed"> Has a buyer price</label>
+      </div>
+    </aside>
 
-  <!-- Filled in by the script: recent searches if there are any, otherwise example searches. -->
-  <div class="chips" id="chips"></div>
-
-  <div class="results-head">
-    <p id="status"></p>
-    <button type="button" class="link-btn" id="reroll" hidden>↻ New pulls</button>
+    <section aria-live="polite">
+      <div id="results"></div>
+      <button type="button" class="btn" id="more" hidden>Show more</button>
+    </section>
   </div>
-  <div id="results"></div>
 
   <footer>VENDR · prices from TCGplayer via tcgcsv.com, updated daily. Not affiliated with TCGplayer or Bandai.</footer>
 </main>
 
+<dialog id="detail" aria-labelledby="detail-name"></dialog>
+
 <script>
-  const MAX_RESULTS = 100;
+  const PAGE_SIZE = 60;
   const MAX_RECENT = 8;
   const RECENT_KEY = "vendr.recentSearches";
   const EXAMPLES = ["luffy op01-003", "shanks manga", "zoro alt art", "don gold"];
-  let cards = [];        // every card, filled in once cards.json loads
-  let searchText = [];   // lowercase text to search in, one per card
+  const RARITY_NAMES = {
+    L: "Leader", C: "Common", UC: "Uncommon", R: "Rare", SR: "Super Rare",
+    SEC: "Secret Rare", TR: "Treasure Rare", PR: "Promo", "DON!!": "DON!!",
+  };
+
+  let cards = [];          // every card, filled in once cards.json loads
+  let searchText = [];     // lowercase text to search in, one per card
+  let changeSince = null;  // the day the arrows compare against, e.g. "2026-10-19"
+  let view = "explore";    // "explore" or "sets"
+  let currentList = [];    // the cards matching the search + filters, sorted
+  let shown = 0;           // how many of currentList are on screen
 
   // ---------- Helpers ----------
 
   // Turn 1079.5 into "$1,079.50". Show a dash when there's no price.
   function money(value) {
-    if (value === null) return "—";
+    if (value === null || value === undefined) return "—";
     return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
   }
 
@@ -256,6 +399,13 @@
     return list[Math.floor(Math.random() * list.length)];
   }
 
+  // The price used for sorting and the price filter: the market price (recent sales).
+  // Not the listing: one-of-one serial cards are listed at $100k+ with no sales,
+  // and would otherwise top every "most valuable" list.
+  function priceOf(card) {
+    return card.market;
+  }
+
   // Turn the UTC update time into "today, 5:31 PM" in the visitor's own time zone.
   // Older builds only have a date, so show that as it is.
   function whenUpdated(data) {
@@ -268,6 +418,40 @@
     if (dayKey(when) === dayKey(new Date())) return `today, ${time}`;
     if (dayKey(when) === dayKey(yesterday)) return `yesterday, ${time}`;
     return when.toLocaleDateString([], { month: "short", day: "numeric" }) + `, ${time}`;
+  }
+
+  // ---------- Up/down change ----------
+  // card.change is the market price move since the previous day's prices, or
+  // null when there's nothing to compare yet (new card, or the first day of history).
+  function changeParts(change) {
+    if (!change) return null;
+    const { amount, percent } = change;
+    if (Math.abs(percent) < 0.1) return { cls: "flat", arrow: "▬", pct: "0%", amt: "no change" };
+    return {
+      cls: amount > 0 ? "up" : "down",
+      arrow: amount > 0 ? "▲" : "▼",
+      pct: `${Math.abs(percent).toFixed(1)}%`,
+      amt: `${amount > 0 ? "+" : "−"}${money(Math.abs(amount))}`,
+    };
+  }
+
+  function sinceText() {
+    if (!changeSince) return "since the last update";
+    const day = new Date(changeSince + "T12:00:00Z");
+    return "since " + day.toLocaleDateString([], { month: "short", day: "numeric" });
+  }
+
+  function moveHtml(card, withAmount) {
+    const p = changeParts(card.change);
+    if (!p) return "";
+    const text = withAmount && p.cls !== "flat" ? `${p.arrow} ${p.amt} (${p.pct})` : `${p.arrow} ${p.pct}`;
+    return `<span class="move ${p.cls}" title="Market price ${escapeHtml(p.amt)} ${sinceText()}">${text}</span>`;
+  }
+
+  function rangeHtml(card, cls) {
+    const range = `${money(card.buyer_min)} – ${money(card.buyer_max)}`;
+    const size = range.length > 23 ? " longest" : range.length > 19 ? " longer" : range.length > 15 ? " long" : "";
+    return `<span class="${cls}${size}">${range}</span>`;
   }
 
   // ---------- Recently searched (saved in this browser only) ----------
@@ -313,162 +497,318 @@
     if (button.dataset.forget !== undefined) return forgetSearch(button.dataset.forget);
     if (button.dataset.clear !== undefined) { saveRecentList([]); return renderChips(); }
     searchBox.value = button.dataset.q;
-    runSearch();
+    showView("explore");
     rememberSearch(button.dataset.q);
+    updateHint();
   });
 
-  // ---------- Up/down arrows ----------
-  // card.change is the market price move since the previous day's prices, or
-  // null when there's nothing to compare yet (new card, or the first day of history).
-  let changeSince = null;   // e.g. "2026-10-19", from cards.json
-
-  function changeParts(change) {
-    if (!change) return null;
-    const { amount, percent } = change;
-    if (Math.abs(percent) < 0.1) return { cls: "flat", arrow: "▬", pct: "0%", amt: "no change" };
-    const sign = amount > 0 ? "+" : "−";
-    return {
-      cls: amount > 0 ? "up" : "down",
-      arrow: amount > 0 ? "▲" : "▼",
-      pct: `${Math.abs(percent).toFixed(1)}%`,
-      amt: `${sign}${money(Math.abs(amount))}`,
-    };
-  }
-
-  function sinceText() {
-    if (!changeSince) return "since the last update";
-    const day = new Date(changeSince + "T12:00:00Z");
-    return "since " + day.toLocaleDateString([], { month: "short", day: "numeric" });
-  }
-
-  // The badge on the picture: "▲ 3.4%".
-  function moveBadge(card) {
-    const p = changeParts(card.change);
-    if (!p) return "";
-    return `<span class="move ${p.cls}" title="Market price ${p.amt} ${sinceText()}">${p.arrow} ${p.pct}</span>`;
-  }
-
-  // The same change written out next to the market price: "▲ +$1.20".
-  function moveInline(card) {
-    const p = changeParts(card.change);
-    if (!p || p.cls === "flat") return "";
-    return `<span class="${p.cls}" title="${sinceText()}">${p.arrow} ${p.amt}</span>`;
-  }
-
-  // ---------- Build the HTML for one card ----------
-  function cardHtml(card) {
-    let prices;
-    if (card.low === null) {
-      // No listing price means nothing to calculate.
-      prices = `
-        <div class="offer-row"><span class="offer-label">Buyer pays</span>${moveBadge(card)}</div>
-        <span class="none">No current listing</span>
-        <div class="ref"><span>Market price</span><span>${moveInline(card)}${money(card.market)}</span></div>`;
-    } else {
-      const range = `${money(card.buyer_min)} – ${money(card.buyer_max)}`;
-      const size = range.length > 19 ? " longer" : range.length > 15 ? " long" : "";
-      prices = `
-        <div class="offer-row"><span class="offer-label">Buyer pays</span>${moveBadge(card)}</div>
-        <span class="offer${size}">${range}</span>
-        <div class="ref"><span>Listing (low)</span><span>${money(card.low)}</span></div>
-        <div class="ref"><span>Market price</span><span>${moveInline(card)}${money(card.market)}</span></div>`;
-    }
-
-    // If the big picture fails to load, fall back to the standard size.
+  // ---------- Card tiles ----------
+  function tileHtml(card) {
+    const meta = [RARITY_NAMES[card.rarity] || card.rarity, card.number, card.printing !== "Regular" ? card.printing : "", card.foil ? "Foil" : ""]
+      .filter(Boolean).map(escapeHtml).join(" · ");
+    const price = card.low === null
+      ? `<span class="none">No listing</span>`
+      : rangeHtml(card, "offer");
     return `
-      <article class="card">
-        <img src="${escapeHtml(card.image)}" alt="${escapeHtml(card.name)}" loading="lazy"
+      <a class="tile" href="?card=${encodeURIComponent(card.id)}" data-id="${escapeHtml(card.id)}">
+        <img src="${escapeHtml(card.image)}" alt="" loading="lazy"
              onerror="this.onerror = null; this.src = this.src.replace('_400w', '_200w');">
-        <div class="name">${escapeHtml(card.name)}</div>
-        <div class="meta">${card.number ? `<b>${escapeHtml(card.number)}</b> · ` : ""}${escapeHtml(card.set)}</div>
-        <div class="tags">
-          <span class="tag">${escapeHtml(card.printing)}</span>
-          ${card.foil ? '<span class="tag foil">Foil</span>' : ""}
-        </div>
-        <div class="prices">${prices}</div>
-        <a href="${escapeHtml(card.url)}" target="_blank" rel="noopener">Latest sales on TCGplayer ↗</a>
-      </article>`;
+        <span class="name">${escapeHtml(card.name)}</span>
+        <span class="set">${escapeHtml(card.set)}</span>
+        <span class="meta">${meta}</span>
+        <span class="price-row">${price}</span>
+        <span class="sub-row"><span class="sub">Market ${money(card.market)}</span>${moveHtml(card, false)}</span>
+      </a>`;
   }
 
-  // ---------- Searching ----------
+  // ---------- Searching, filtering and sorting ----------
   const searchBox = document.getElementById("search");
-  const statusText = document.getElementById("status");
+  const countText = document.getElementById("count");
   const resultsBox = document.getElementById("results");
-  const rerollButton = document.getElementById("reroll");
+  const moreButton = document.getElementById("more");
+  const sortSelect = document.getElementById("sort");
+  const filterEls = {
+    set: document.getElementById("f-set"),
+    min: document.getElementById("f-min"),
+    max: document.getElementById("f-max"),
+    foil: document.getElementById("f-foil"),
+    listed: document.getElementById("f-listed"),
+  };
+  const checked = name => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(el => el.value);
 
   // When nothing matches, say which word is the problem instead of
   // leaving a dead end. Every word has to match, so one typo hides everything.
   function noMatchesHelp(words) {
     const missing = words.filter(word => !searchText.some(text => text.includes(word)));
     if (missing.length > 0) {
-      return `No cards found. Nothing matches "${missing.join('", "')}". ` +
-        "Check the spelling, or search a card number like OP01-001.";
+      return `Nothing matches "${missing.join('", "')}". Check the spelling, or search a card number like OP01-001.`;
     }
-    return "No cards found. Each word matches on its own, but no single card has all of them. Try fewer words.";
+    if (words.length > 1) return "Each word matches on its own, but no single card has all of them. Try fewer words.";
+    return "No cards match these filters. Try resetting them.";
   }
 
-  // With an empty search box, show a few random cards worth looking at
-  // (ones with a real price), so the page is never blank.
-  let pullPool = [];
-  function showRandomPulls() {
-    const picks = new Set();
-    while (picks.size < Math.min(6, pullPool.length)) picks.add(randomItem(pullPool));
-    statusText.innerHTML = "<b>Random pulls</b>Six cards from today's prices. Search above for your own.";
-    resultsBox.innerHTML = [...picks].map(cardHtml).join("");
-    rerollButton.hidden = false;
+  function activeFilterCount() {
+    return [filterEls.set.value, filterEls.min.value, filterEls.max.value, filterEls.foil.checked, filterEls.listed.checked]
+      .filter(Boolean).length + checked("rarity").length + checked("printing").length;
   }
-  rerollButton.addEventListener("click", showRandomPulls);
+
+  const SORTERS = {
+    "price-desc": (a, b) => (priceOf(b) ?? -1) - (priceOf(a) ?? -1),
+    "price-asc": (a, b) => (priceOf(a) ?? Infinity) - (priceOf(b) ?? Infinity),
+    up: (a, b) => (b.change?.percent ?? -Infinity) - (a.change?.percent ?? -Infinity),
+    down: (a, b) => (a.change?.percent ?? Infinity) - (b.change?.percent ?? Infinity),
+    name: (a, b) => a.name.localeCompare(b.name),
+    number: (a, b) => (a.number || "~").localeCompare(b.number || "~", undefined, { numeric: true }),
+  };
 
   // Every word typed must appear somewhere in the card's text,
-  // so "luffy op05" finds Luffy cards from OP05.
+  // so "luffy op05" finds Luffy cards from OP05. Then the filters, then the sort.
   function runSearch() {
     const query = searchBox.value.trim().toLowerCase();
-    history.replaceState(null, "", query ? "?q=" + encodeURIComponent(searchBox.value.trim()) : location.pathname);
-    if (query.length < 2) {
-      showRandomPulls();
-      return;
-    }
-    rerollButton.hidden = true;
+    const words = query.length >= 2 ? query.split(/\s+/) : [];
+    const set = filterEls.set.value;
+    const min = filterEls.min.value === "" ? null : Number(filterEls.min.value);
+    const max = filterEls.max.value === "" ? null : Number(filterEls.max.value);
+    const rarities = checked("rarity");
+    const printings = checked("printing");
+    const foilOnly = filterEls.foil.checked;
+    const listedOnly = filterEls.listed.checked;
 
-    const words = query.split(/\s+/);
-    const matches = [];
-    for (let i = 0; i < cards.length && matches.length < MAX_RESULTS; i++) {
-      if (words.every(word => searchText[i].includes(word))) {
-        matches.push(cards[i]);
-      }
+    const list = [];
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i];
+      if (words.length && !words.every(word => searchText[i].includes(word))) continue;
+      if (set && card.set !== set) continue;
+      if (rarities.length && !rarities.includes(card.rarity)) continue;
+      if (printings.length && !printings.includes(card.printing)) continue;
+      if (foilOnly && !card.foil) continue;
+      if (listedOnly && card.low === null) continue;
+      const price = priceOf(card);
+      if (min !== null && (price === null || price < min)) continue;
+      if (max !== null && (price === null || price > max)) continue;
+      list.push(card);
     }
 
-    const count = matches.length;
-    statusText.textContent = count === 0 ? noMatchesHelp(words)
-      : count === MAX_RESULTS ? "Showing the first 100 matches. Add a word to narrow it down."
-      : `${count} card${count === 1 ? "" : "s"} found.`;
-    resultsBox.innerHTML = matches.map(cardHtml).join("");
+    // "Best match" keeps the catalog order when searching; with no search it shows the priciest first.
+    let sort = sortSelect.value;
+    if (sort === "best" && !words.length) sort = "price-desc";
+    if (SORTERS[sort]) list.sort(SORTERS[sort]);
+
+    currentList = list;
+    shown = 0;
+    resultsBox.innerHTML = "";
+    if (list.length === 0) {
+      resultsBox.innerHTML = `<p class="empty">${escapeHtml(noMatchesHelp(words))}</p>`;
+    }
+    showMore();
+
+    const filters = activeFilterCount();
+    const what = words.length ? `for “${escapeHtml(searchBox.value.trim())}”` : "in the catalog";
+    countText.innerHTML = `<b>${list.length.toLocaleString()}</b> card${list.length === 1 ? "" : "s"} ${what}` +
+      (filters ? ` · ${filters} filter${filters === 1 ? "" : "s"} on` : "");
+    document.getElementById("filters-toggle").textContent = filters ? `Filters (${filters})` : "Filters";
+
+    // Put the search in the address bar so it can be bookmarked or shared.
+    const params = new URLSearchParams(location.search);
+    if (query) params.set("q", searchBox.value.trim()); else params.delete("q");
+    history.replaceState(null, "", params.toString() ? "?" + params : location.pathname);
   }
 
+  function showMore() {
+    const next = currentList.slice(shown, shown + PAGE_SIZE);
+    resultsBox.insertAdjacentHTML("beforeend", next.map(tileHtml).join(""));
+    shown += next.length;
+    moreButton.hidden = shown >= currentList.length;
+    moreButton.textContent = `Show more (${(currentList.length - shown).toLocaleString()} left)`;
+  }
+  moreButton.addEventListener("click", showMore);
+
   // A search counts as "recent" once the person stops typing for a moment and it
-  // found something, or as soon as they press Enter or open a card's sales link.
+  // found something, or as soon as they press Search/Enter or open a card.
   let rememberTimer;
   searchBox.addEventListener("input", () => {
-    runSearch();
+    if (view !== "explore") showView("explore"); else runSearch();
     clearTimeout(rememberTimer);
     rememberTimer = setTimeout(() => {
-      if (resultsBox.children.length > 0 && searchBox.value.trim().length >= 2) rememberSearch(searchBox.value);
+      if (currentList.length > 0 && searchBox.value.trim().length >= 2) rememberSearch(searchBox.value);
     }, 1500);
     updateHint();
   });
+  document.getElementById("search-form").addEventListener("submit", event => {
+    event.preventDefault();
+    if (!searchBox.value && currentSuggestion) searchBox.value = currentSuggestion;
+    showView("explore");
+    rememberSearch(searchBox.value);
+    updateHint();
+  });
+  document.getElementById("clear").addEventListener("click", () => {
+    searchBox.value = "";
+    showView("explore");
+    updateHint();
+    searchBox.focus();
+  });
   searchBox.addEventListener("keydown", event => {
-    if (event.key === "Enter") rememberSearch(searchBox.value);
     // Tab or → on an empty box takes the suggestion shown in grey.
     if ((event.key === "Tab" || event.key === "ArrowRight") && searchBox.value === "" && currentSuggestion) {
       event.preventDefault();
       searchBox.value = currentSuggestion;
-      runSearch();
+      showView("explore");
       rememberSearch(currentSuggestion);
       updateHint();
     }
   });
+
+  sortSelect.addEventListener("change", runSearch);
+  document.getElementById("filters").addEventListener("input", () => {
+    if (view !== "explore") showView("explore"); else runSearch();
+  });
+  document.getElementById("reset-filters").addEventListener("click", () => {
+    filterEls.set.value = "";
+    filterEls.min.value = filterEls.max.value = "";
+    document.querySelectorAll("#filters input[type=checkbox]").forEach(el => { el.checked = false; });
+    runSearch();
+  });
+  document.getElementById("filters-toggle").addEventListener("click", event => {
+    const panel = document.getElementById("filters");
+    const open = panel.classList.toggle("open");
+    event.currentTarget.setAttribute("aria-expanded", open);
+  });
+
+  // Build the filter options from the data, most common first.
+  function buildFilters() {
+    const count = key => cards.reduce((acc, card) => {
+      if (card[key]) acc.set(card[key], (acc.get(card[key]) || 0) + 1);
+      return acc;
+    }, new Map());
+
+    const sets = [...count("set").keys()].sort((a, b) => a.localeCompare(b));
+    filterEls.set.insertAdjacentHTML("beforeend", sets.map(s => `<option>${escapeHtml(s)}</option>`).join(""));
+
+    const checkboxes = (name, entries, label) => entries.map(([value, n]) => `
+      <label class="check"><input type="checkbox" name="${name}" value="${escapeHtml(value)}"> ${escapeHtml(label(value))}<span class="n">${n.toLocaleString()}</span></label>`).join("");
+
+    const order = Object.keys(RARITY_NAMES);
+    const rarities = [...count("rarity")].filter(([r]) => RARITY_NAMES[r]).sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]));
+    document.getElementById("f-rarity").innerHTML = checkboxes("rarity", rarities, r => RARITY_NAMES[r] || r);
+
+    // Only printings with enough cards to be worth a checkbox; the rest are still searchable.
+    const printings = [...count("printing")].sort((a, b) => b[1] - a[1]).filter(([, n]) => n >= 15);
+    document.getElementById("f-printing").innerHTML = checkboxes("printing", printings, p => p);
+  }
+
+  // ---------- Sets view ----------
+  function renderSets() {
+    const bySet = new Map();
+    for (const card of cards) {
+      const entry = bySet.get(card.set) || { name: card.set, count: 0, top: null };
+      entry.count++;
+      if (card.image && (!entry.top || (priceOf(card) ?? 0) > (priceOf(entry.top) ?? 0))) entry.top = card;
+      bySet.set(card.set, entry);
+    }
+    const sets = [...bySet.values()].sort((a, b) => a.name.localeCompare(b.name));
+    resultsBox.classList.add("sets");
+    resultsBox.innerHTML = sets.map(s => `
+      <button type="button" class="set-tile" data-set="${escapeHtml(s.name)}">
+        <img src="${escapeHtml(s.top ? s.top.image : "")}" alt="" loading="lazy">
+        <div><b>${escapeHtml(s.name)}</b><span>${s.count.toLocaleString()} cards</span></div>
+      </button>`).join("");
+    moreButton.hidden = true;
+    countText.innerHTML = `<b>${sets.length}</b> sets · each shows its most valuable card`;
+  }
   resultsBox.addEventListener("click", event => {
-    if (event.target.closest("a") && searchBox.value.trim().length >= 2) rememberSearch(searchBox.value);
+    const setTile = event.target.closest(".set-tile");
+    if (setTile) {
+      filterEls.set.value = setTile.dataset.set;
+      searchBox.value = "";
+      sortSelect.value = "number";
+      showView("explore");
+      updateHint();
+      return;
+    }
+    const tile = event.target.closest(".tile");
+    if (tile && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+      event.preventDefault();
+      openCard(tile.dataset.id);
+    }
+  });
+
+  function showView(name) {
+    view = name;
+    document.querySelectorAll(".tabs button[data-view]").forEach(button => {
+      if (button.dataset.view === name) button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
+    });
+    document.getElementById("sort-wrap").hidden = name !== "explore";
+    document.getElementById("filters").hidden = name !== "explore";
+    document.getElementById("filters-toggle").hidden = name !== "explore";
+    document.querySelector(".layout").classList.toggle("no-filters", name !== "explore");
+    if (name === "sets") return renderSets();
+    resultsBox.classList.remove("sets");
+    runSearch();
+  }
+  document.querySelectorAll(".tabs button[data-view]").forEach(button => {
+    button.addEventListener("click", () => showView(button.dataset.view));
+  });
+
+  // ---------- Card detail ----------
+  const dialog = document.getElementById("detail");
+
+  function openCard(id) {
+    const card = cards.find(c => c.id === id);
+    if (!card) return;
+    if (searchBox.value.trim().length >= 2) rememberSearch(searchBox.value);
+
+    const offer = card.low === null
+      ? `<div class="offer" style="color: var(--muted); text-shadow: none; font-size: 1.4rem">No current listing</div>`
+      : rangeHtml(card, "offer");
+    const change = moveHtml(card, true);
+    const historyNote = changeSince
+      ? `Price chart coming soon. Daily prices are being saved; the arrows compare with ${new Date(changeSince + "T12:00:00Z").toLocaleDateString([], { month: "short", day: "numeric" })}.`
+      : "Price chart coming soon. VENDR started saving daily prices on Oct 20, 2026, so up/down changes appear after the second day.";
+
+    dialog.innerHTML = `
+      <button type="button" class="close" aria-label="Close" data-close>×</button>
+      <div class="detail">
+        <img src="${escapeHtml(card.image)}" alt="${escapeHtml(card.name)}"
+             onerror="this.onerror = null; this.src = this.src.replace('_400w', '_200w');">
+        <div>
+          <h2 id="detail-name">${escapeHtml(card.name)}</h2>
+          <div class="set">${escapeHtml(card.set)}</div>
+          <div class="tags">
+            ${card.number ? `<span class="tag plain">${escapeHtml(card.number)}</span>` : ""}
+            ${card.rarity ? `<span class="tag plain">${escapeHtml(RARITY_NAMES[card.rarity] || card.rarity)}</span>` : ""}
+            <span class="tag">${escapeHtml(card.printing)}</span>
+            ${card.foil ? '<span class="tag foil">Foil</span>' : ""}
+          </div>
+          <span class="label">Buyer pays</span>
+          ${offer}
+          <div class="rows">
+            <div><span>Lowest listing</span><span>${money(card.low)}</span></div>
+            <div><span>Market price</span><span>${money(card.market)}</span></div>
+            <div><span>Change ${sinceText()}</span><span>${change || '<span class="flat">not yet available</span>'}</span></div>
+          </div>
+          <p class="chart-note">${historyNote}</p>
+          <a class="buy" href="${escapeHtml(card.url)}" target="_blank" rel="noopener">Latest sales on TCGplayer ↗</a>
+        </div>
+      </div>`;
+    if (!dialog.open) dialog.showModal();
+
+    const params = new URLSearchParams(location.search);
+    params.set("card", id);
+    history.replaceState(null, "", "?" + params);
+  }
+
+  function closeCard() {
+    if (dialog.open) dialog.close();
+  }
+  dialog.addEventListener("click", event => {
+    // A click on the dark area around the box, or on ×, closes it.
+    if (event.target === dialog || event.target.closest("[data-close]")) closeCard();
+  });
+  dialog.addEventListener("close", () => {
+    const params = new URLSearchParams(location.search);
+    params.delete("card");
+    history.replaceState(null, "", params.toString() ? "?" + params : location.pathname);
   });
 
   // ---------- The grey suggestion in the empty search box ----------
@@ -484,18 +824,18 @@
 
   function suggestionFor(card) {
     // Drop the "(Parallel)" style bits so the suggestion reads like something a person would type.
-    const name = card.name.replace(/\s*[(\[].*$/, "");
+    const name = card.name.replace(/\s*[(\[].*$/, "").replace(/\s+-\s+.*$/, "");
     return card.number ? `${name} ${card.number}` : name;
   }
 
-  function startSuggestions() {
-    const pool = pullPool.filter(card => card.number);
+  function startSuggestions(pool) {
+    pool = pool.filter(card => card.number);
     if (pool.length === 0) return;
-    let text = "", shown = 0, phase = "pause";
+    let text = "", typed = 0, phase = "pause";
 
     function next() {
       text = suggestionFor(randomItem(pool));
-      shown = 0;
+      typed = 0;
       phase = "typing";
     }
 
@@ -508,9 +848,9 @@
     }
     setInterval(() => {
       if (phase === "typing") {
-        shown++;
-        searchBox.placeholder = text.slice(0, shown) + (shown < text.length ? "▌" : "");
-        if (shown >= text.length) { phase = "holding"; currentSuggestion = text; updateHint(); setTimeout(() => { phase = "done"; }, 2600); }
+        typed++;
+        searchBox.placeholder = text.slice(0, typed) + (typed < text.length ? "▌" : "");
+        if (typed >= text.length) { phase = "holding"; currentSuggestion = text; updateHint(); setTimeout(() => { phase = "done"; }, 2600); }
       } else if (phase === "done") {
         next();
       }
@@ -525,21 +865,24 @@
       cards = data.cards;
       changeSince = data.change_since || null;
       searchText = cards.map(card =>
-        [card.name, card.number, card.set, card.printing, card.foil ? "foil" : ""].join(" ").toLowerCase());
-      // Random pulls and suggestions come from cards worth at least $5, so they're interesting.
-      pullPool = cards.filter(card => card.low !== null && card.low >= 5 && card.image);
-      if (pullPool.length === 0) pullPool = cards;
+        [card.name, card.number, card.set, card.printing, RARITY_NAMES[card.rarity] || "", card.foil ? "foil" : ""].join(" ").toLowerCase());
 
       const pct = n => Math.round(n * 100) + "%";
       document.getElementById("percents").textContent =
         `${pct(data.buyer_min_percent)} to ${pct(data.buyer_max_percent)}`;
       document.getElementById("updated").innerHTML =
-        `<span class="live">●</span> ${cards.length.toLocaleString()} cards · prices updated ${escapeHtml(whenUpdated(data))}`;
+        `<span class="live">●</span> ${cards.length.toLocaleString()} cards<br>prices updated ${escapeHtml(whenUpdated(data))}`;
 
-      // Use the search from the address (like ?q=luffy), or start with random pulls.
-      searchBox.value = new URLSearchParams(location.search).get("q") || "";
-      runSearch();
-      startSuggestions();
+      buildFilters();
+
+      // Use the search and card from the address (like ?q=luffy&card=123-Normal).
+      const params = new URLSearchParams(location.search);
+      searchBox.value = params.get("q") || "";
+      showView("explore");
+      if (params.get("card")) openCard(params.get("card"));
+
+      // Suggestions come from cards worth at least $5, so they're interesting.
+      startSuggestions(cards.filter(card => card.low !== null && card.low >= 5));
     })
     .catch(() => {
       document.getElementById("updated").textContent =

@@ -100,6 +100,7 @@ def main():
             "name": row["name"],
             "set": row["set_name"],
             "number": row["card_number"],
+            "rarity": row["rarity"],
             "printing": row["printing"],
             "foil": row["sub_type"] == "Foil",
             "image": row["image_url"],
