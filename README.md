@@ -66,7 +66,8 @@ You can run **Nightly price update** by hand from the Actions tab on any branch.
 - `lib/portfolio.ts` + `lib/portfolio.test.ts`: portfolio maths, tested
 - `lib/data.ts`: build-time data layer (computed once per build)
 - `components/`, `app/`: the pages
-- `app/globals.css`, `app/portfolio.css`: the design system (tokens at the top)
+- `app/globals.css`, `app/portfolio.css`: the design system (tokens at the top: colours, the one accent, corner radius, glass)
+- `components/flow.tsx`: the plasma that moves behind the whole site, drawn with WebGL. It takes its colours from the tokens, stops for reduced motion, and falls back to a still glow where WebGL isn't available
 
 ### Changing the buyer percentages
 
