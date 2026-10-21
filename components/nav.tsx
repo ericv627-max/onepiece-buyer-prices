@@ -43,7 +43,10 @@ export function Nav() {
   return (
     <header className="topbar">
       <div className="wrap topbar-inner">
-        <Link href="/" className="logo" aria-label="VENDR home"><b>VENDR</b><small>Price it. Stack it. Flip it.</small></Link>
+        <Link href="/" className="logo" aria-label="VENDR home">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 14l10-9 10 9" /><path d="M6 25l10-9 10 9" /></svg>
+          <b>VENDR</b>
+        </Link>
         <nav aria-label="Main" className={`main-nav${mobileOpen ? " open" : ""}`}>
           {LINKS.map(([href, label]) => (
             <Link key={href} href={href} aria-current={isActive(path, href) ? "page" : undefined}>{label}</Link>
@@ -82,6 +85,9 @@ function TopActions() {
 
   return (
     <div className="top-actions" ref={ref}>
+      <Link href="/products?focus=1" className="icon-btn" aria-label="Search products">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+      </Link>
       <div className="menu">
         <button type="button" className="pill-btn" aria-haspopup="true" aria-expanded={open === "cur"} onClick={() => setOpen(open === "cur" ? null : "cur")}>
           <span className="coin">{coinFor(code)}</span><span className="cur-code">{code}</span><span className="sr-only">Change currency</span>

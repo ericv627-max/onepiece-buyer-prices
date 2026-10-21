@@ -127,7 +127,7 @@ export function Browser({ mode, scope }: { mode: Mode; scope?: SetInfo }) {
     <div className={`browser ${mode}`}>
       <div className="finder">
         <SearchInput value={q} onChange={onSearch} onSubmit={v => rememberSearch(v)} placeholder={placeholder}
-          pool={scoped ? undefined : products} big={mode === "home"} autoFocus={mode === "home"} />
+          pool={scoped ? undefined : products} big={mode === "home"} autoFocus={mode === "home" || params.get("focus") === "1"} />
         <div className="quick" role="group" aria-label="Product category">
           {categories.map(([key, label]) => (
             <button key={key} type="button" className="chip" aria-pressed={category === key}

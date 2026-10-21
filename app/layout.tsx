@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: { title: "VENDR · Price it. Stack it. Flip it.", description: "One Piece Card Game prices, sets and sealed products, updated daily." },
 };
 
-export const viewport: Viewport = { themeColor: "#08090c", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#030a14", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const meta = getMeta();
@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap" />
       </head>
       <body>
         <Flow />

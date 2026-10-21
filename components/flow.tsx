@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useRef } from "react";
 
-// Plasma behind the whole site: soft blue light rolling through black, drawn on the graphics card.
-// It is the old text-mode "plasma" effect (sine waves running in different directions, added
-// together, so the light swells and fades as they agree and cancel), shown as smooth light rather
-// than characters. It's drawn small and stretched to the window, which costs nothing because it is
-// all soft gradients, at about 24 frames a second. Colours come from the site's own tokens, so it
-// follows the accent.
+// The light behind the whole site: one huge arch of blue over a dark dome, drawn on the graphics card.
+// It is shaped like the glow in the reference design: a sharp-ish outer edge of pale sky blue that
+// deepens through azure and cobalt into the dark, a little thinner and bluer toward the sides of the
+// screen. It hardly moves: the rim drifts and breathes by a few pixels so it feels alive without
+// pulling the eye. It is drawn small and stretched to the window (it is all soft gradient, so nothing
+// is lost) and the colours come from the site's own tokens.
 //
 // It never gets in the way: with reduced motion it draws one still frame, it stops while the tab is
 // hidden, and if the browser can't do WebGL the static glow in globals.css (body::before) shows instead.
@@ -26,42 +26,50 @@ uniform vec3 u_accent;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 
-// The classic plasma: a few sine waves running in different directions, plus rings spreading from a
-// point that wanders, all added together. Where the waves agree the light is bright and where they
-// cancel it is dark, and because each one moves at its own speed the pattern never repeats.
-float plasma(vec2 p, float t) {
-  float v = sin(p.x * 1.7 + t);
-  v += sin(p.y * 1.3 - t * 0.8);
-  v += sin((p.x + p.y) * 1.1 + t * 1.2);
-  vec2 c = p + vec2(sin(t * 0.6), cos(t * 0.8)) * 0.9;
-  v += sin(length(c) * 2.2 - t * 1.1);
-  return v * 0.25;   // -1 to 1
+// The colour of the light as it goes from the bright rim (u = 0) down into the dark dome (u = 1).
+vec3 ramp(float u) {
+  vec3 pale = vec3(0.66, 0.89, 0.98);
+  vec3 cyan = vec3(0.20, 0.64, 0.94);
+  vec3 azure = u_accent * vec3(0.62, 0.95, 1.0);
+  vec3 cobalt = u_accent * vec3(0.20, 0.36, 0.62);
+  vec3 navy = u_accent * vec3(0.08, 0.12, 0.30);
+  vec3 c = mix(pale, cyan, smoothstep(0.00, 0.20, u));
+  c = mix(c, azure, smoothstep(0.14, 0.38, u));
+  c = mix(c, cobalt, smoothstep(0.32, 0.64, u));
+  c = mix(c, navy, smoothstep(0.58, 0.88, u));
+  c = mix(c, u_base, smoothstep(0.80, 1.00, u));
+  return c;
 }
 
 void main() {
   vec2 frag = gl_FragCoord.xy;
   float aspect = u_res.x / u_res.y;
-  // Height is -1 to 1 and width follows. On a tall, narrow screen (a phone) zoom out, so it sees as
-  // much of the pattern as a wide screen does.
-  float zoom = max(1.0, 1.25 / aspect);
-  vec2 reach = vec2(aspect, 1.0) * zoom;   // how far the screen reaches from its centre
-  vec2 p = (frag / u_res - 0.5) * 2.0 * reach;
-  float t = u_time * 0.55;
+  vec2 p = (frag - 0.5 * u_res) / (0.5 * u_res.y);   // height is -1 to 1, width follows
+  float t = u_time;
 
-  // A gentle sine bend, so the waves curve instead of running dead straight.
-  vec2 w = p + 0.32 * vec2(sin(p.y * 1.2 + t * 0.9), cos(p.x * 1.0 - t * 0.7));
+  // The arch: a huge circle whose brightest line peaks about a quarter of the way down the screen and
+  // meets the sides of the screen around the middle, so it is always a big dome of light.
+  float ax = max(aspect, 0.4);
+  float crestY = 0.48;
+  float edgeY = crestY - 0.35 * ax;
+  float cy = (ax * ax + edgeY * edgeY - crestY * crestY) / (2.0 * (edgeY - crestY));
+  float radius = crestY - cy;
+  vec2 d = p - vec2(0.0, cy);
+  float dist = length(d);
+  float ang = atan(d.x, d.y);   // 0 at the top of the arch, positive to the right
+  float across = cos(ang);      // 1 at the top, smaller toward the sides
 
-  // Two plasmas, one broad and slow, one smaller, added into a single field of light.
-  float a = 0.5 + 0.5 * plasma(w, t);
-  float b = 0.5 + 0.5 * plasma(w * 0.55 + 3.0, t * 0.6);
-  float field = a * 0.6 + b * 0.4;
-  field = smoothstep(0.25, 0.74, field);      // stretch the middle of the range so there is real black and real light
-  float glow = smoothstep(0.30, 1.0, field);
+  // Almost no movement: the rim drifts and breathes by a few pixels, very slowly.
+  float drift = 0.007 * sin(ang * 5.0 - t * 0.16) + 0.004 * sin(ang * 9.0 + t * 0.22);
+  float x = dist - (radius + drift + 0.005 * sin(t * 0.13));   // below zero inside the dome, above outside
 
-  // Black, then deep navy, then the accent, then a pale blue edge on the brightest cores.
-  vec3 col = mix(u_base, u_accent * 0.16, smoothstep(0.05, 0.5, field));
-  col = mix(col, u_accent * 0.82, pow(glow, 1.4));
-  col += vec3(0.10, 0.20, 0.42) * pow(glow, 4.0);
+  // How deep into the dome we are, scaled so the glow is thick at the top and thinner and bluer at the sides.
+  float thick = 0.75 * (0.74 + 0.26 * across);
+  float u = clamp(-x / thick + 0.05 * (1.0 - across) + 0.012 * sin(ang * 6.0 - t * 0.18), 0.0, 1.0);
+
+  float outer = exp(-max(x, 0.0) * 14.0);   // the outer edge falls to black quickly
+  vec3 col = u_base + (ramp(u) - u_base) * outer;
+  col = u_base + (col - u_base) * (0.78 + 0.22 * across);   // a little dimmer toward the sides
 
   col += (hash(frag) - 0.5) / 255.0;   // a little grain, so the dark gradients don't band
   gl_FragColor = vec4(col, 1.0);
@@ -123,12 +131,12 @@ export function Flow() {
 
     const uRes = gl.getUniformLocation(program, "u_res");
     const uTime = gl.getUniformLocation(program, "u_time");
-    gl.uniform3fv(gl.getUniformLocation(program, "u_base"), cssColor("--bg") ?? [0.02, 0.03, 0.05]);
-    gl.uniform3fv(gl.getUniformLocation(program, "u_accent"), cssColor("--accent-rgb") ?? [0.04, 0.36, 1]);
+    gl.uniform3fv(gl.getUniformLocation(program, "u_base"), cssColor("--bg") ?? [0.012, 0.035, 0.08]);
+    gl.uniform3fv(gl.getUniformLocation(program, "u_accent"), cssColor("--accent-rgb") ?? [0.17, 0.56, 0.85]);
 
     const resize = () => {
-      const scale = window.innerWidth < 700 ? 0.36 : 0.44;
-      const w = Math.max(160, Math.min(900, Math.round(window.innerWidth * scale)));
+      const scale = window.innerWidth < 700 ? 0.4 : 0.5;
+      const w = Math.max(160, Math.min(1000, Math.round(window.innerWidth * scale)));
       const h = Math.max(90, Math.round((w * window.innerHeight) / Math.max(window.innerWidth, 1)));
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
@@ -148,7 +156,7 @@ export function Flow() {
     let t = 20;   // starts part-way through, so the first frame is already a good one
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
-      if (now - last < 40) return;   // about 24 frames a second is plenty for something this slow
+      if (now - last < 50) return;   // 20 frames a second is plenty for something that barely moves
       t += Math.min((now - last) / 1000, 0.1);
       last = now;
       draw(t);
