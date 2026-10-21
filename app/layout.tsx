@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./portfolio.css";
+import { AddressMove } from "@/components/address-move";
 import { Flow } from "@/components/flow";
 import { Nav } from "@/components/nav";
 import { RatesProvider } from "@/components/money";
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap" />
       </head>
       <body>
+        <AddressMove />
         <Flow />
         <RatesProvider value={{ date: meta.rates?.date ?? null, rates: meta.rates?.rates ?? {} }}>
           <a href="#main" className="skip">Skip to content</a>
