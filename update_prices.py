@@ -27,7 +27,7 @@ import re
 import sqlite3
 import time
 import urllib.request
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -71,6 +71,35 @@ def fetch_json(url):
 # ---------------------------------------------------------------------------
 # Step 2: small helpers to clean up the data
 # ---------------------------------------------------------------------------
+
+# tcgcsv publishes the moment it last refreshed its prices in this tiny file.
+LAST_UPDATED_URL = "https://tcgcsv.com/last-updated.txt"
+
+
+def parse_source_time(text):
+    """
+    The file holds a time like "2026-10-20T20:05:18+0000". Returns it as a UTC
+    datetime, or None when the text isn't in that form.
+    """
+    try:
+        moment = datetime.strptime(text.strip(), "%Y-%m-%dT%H:%M:%S%z")
+    except ValueError:
+        return None
+    return moment.astimezone(timezone.utc)
+
+
+def fetch_source_time():
+    """When tcgcsv last refreshed its prices (UTC), or None if it can't be read."""
+    try:
+        request = urllib.request.Request(
+            LAST_UPDATED_URL, headers={"User-Agent": "OnePieceBuyerPriceLookup/1.0"}
+        )
+        with urllib.request.urlopen(request, timeout=30) as response:
+            return parse_source_time(response.read().decode("utf-8"))
+    except Exception as error:  # a missing time must not stop the update
+        print(f"Couldn't read tcgcsv's last-updated time ({error}).")
+        return None
+
 
 def get_extended_value(product, field_name):
     """
@@ -305,9 +334,9 @@ def make_row(product, set_name, price):
     }
 
 
-def save_rows(rows):
-    """Replace today's card list in the database and add a history snapshot."""
-    today = date.today().isoformat()
+def save_rows(rows, snapshot_time):
+    """Replace the card list in the database and add a history snapshot."""
+    today = snapshot_time.date().isoformat()
     db = sqlite3.connect(DB_PATH)
     create_tables(db)
 
@@ -340,7 +369,7 @@ def save_rows(rows):
         # own time zone, so it never shows "tomorrow's" date in the evening.
         db.execute(
             "INSERT OR REPLACE INTO info VALUES ('last_updated_at', ?)",
-            (datetime.now(timezone.utc).isoformat(timespec="seconds"),),
+            (snapshot_time.isoformat(timespec="seconds"),),
         )
     db.close()
 
@@ -350,18 +379,19 @@ def card_id(row):
     return f"{row['product_id']}-{row['sub_type']}"
 
 
-def save_data_files(rows):
+def save_data_files(rows, snapshot_time):
     """
-    Write data/catalog.json and today's data/history file (see DATA_DIR above).
-    The date is the UTC date, which is what the nightly job runs on.
+    Write data/catalog.json and that day's data/history file (see DATA_DIR above).
+    The day is the UTC date of the moment tcgcsv published these prices, not the
+    moment this job happened to run, so a late run can't mislabel or skip a day,
+    and running twice on the same prices rewrites the same files (no new commit).
     """
-    now = datetime.now(timezone.utc)
-    today = now.date().isoformat()
+    today = snapshot_time.date().isoformat()
     HISTORY_DIR.mkdir(parents=True, exist_ok=True)
 
     catalog = {
         "updated": today,
-        "updated_at": now.isoformat(timespec="seconds"),
+        "updated_at": snapshot_time.isoformat(timespec="seconds"),
         "cards": [{"id": card_id(row), **row} for row in rows],
     }
     # One card per line: keeps the file readable and makes git's daily diff small.
@@ -414,12 +444,35 @@ def save_exchange_rates():
         print(f"Couldn't update exchange rates ({error}); keeping the last saved ones.")
 
 
+def download_prices():
+    """
+    Download everything and return (groups, rows, snapshot_time).
+
+    tcgcsv refreshes once a day, around 20:00 UTC. If it refreshed while we were
+    downloading, the sets we got could be a mix of two days, so we check its
+    last-updated time before and after, and start over if it changed.
+    """
+    for attempt in range(1, 4):
+        before = fetch_source_time()
+        groups = fetch_json(f"{BASE_URL}/groups")
+        rows = build_rows(groups)
+        after = fetch_source_time()
+        if before == after:
+            # If the time can't be read at all, fall back to the clock.
+            return groups, rows, after or datetime.now(timezone.utc)
+        print(f"tcgcsv refreshed its prices during the download (attempt {attempt} of 3).")
+        if attempt < 3:
+            print("Starting over in 3 minutes.")
+            time.sleep(180)
+    raise SystemExit("tcgcsv kept refreshing while we downloaded. Nothing was saved; run it again later.")
+
+
 def main():
     print("Downloading One Piece prices from tcgcsv.com ...")
-    groups = fetch_json(f"{BASE_URL}/groups")
-    rows = build_rows(groups)
-    save_rows(rows)
-    save_data_files(rows)
+    groups, rows, snapshot_time = download_prices()
+    print(f"These prices were published by tcgcsv at {snapshot_time.isoformat(timespec='seconds')}.")
+    save_rows(rows, snapshot_time)
+    save_data_files(rows, snapshot_time)
     save_sets(groups)
     save_exchange_rates()
     print(f"Done! Saved {len(rows)} card printings to {DB_PATH.name} and the data folder.")

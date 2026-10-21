@@ -51,6 +51,15 @@ jobs:
           assert product_language("Monkey.D.Luffy (003) (Parallel)") == "English"
           assert product_language("English Version 1st Anniversary Set") == "English"
           print("product_language OK")
+
+          from update_prices import parse_source_time
+          assert parse_source_time("2026-10-20T20:05:18+0000\n").isoformat() == "2026-10-20T20:05:18+00:00"
+          assert parse_source_time("2026-10-20T22:05:18+0200").isoformat() == "2026-10-20T20:05:18+00:00"
+          # The day is the UTC day, so a time just after midnight in another zone still counts for the day before.
+          assert parse_source_time("2026-10-21T00:30:00+0300").date().isoformat() == "2026-10-20"
+          assert parse_source_time("not a time") is None
+          assert parse_source_time("") is None
+          print("parse_source_time OK")
           EOF
 
       - uses: actions/setup-node@v4
