@@ -33,7 +33,7 @@ export function ProductView() {
       <div className="state empty panel">
         <h1>Product not found</h1>
         <p>{id ? "That product isn’t in today’s TCGplayer listing. It may have been removed, or the link is out of date." : "No product was chosen."}</p>
-        <div className="actions"><Link href="/" className="btn primary">Search VENDR</Link><Link href="/products" className="btn">Browse products</Link></div>
+        <div className="actions"><Link href="/products?focus=1" className="btn primary">Search products</Link><Link href="/products" className="btn">Browse products</Link></div>
       </div>
     );
   }
