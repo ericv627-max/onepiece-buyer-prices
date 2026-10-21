@@ -67,7 +67,9 @@ jobs:
             echo "Prices haven't changed since the last save."
             echo "pushed=false" >> "$GITHUB_OUTPUT"
           else
-            git commit -m "Prices for $(date -u +%F)"
+            # Name the commit after the day of the prices, not the day the job ran.
+            DAY=$(python -c "import json; print(json.load(open('data/catalog.json'))['updated'])")
+            git commit -m "Prices for $DAY"
             # If someone pushed code while this ran, put the price commit on top of it.
             git pull --rebase origin "$GITHUB_REF_NAME"
             git push origin "HEAD:$GITHUB_REF_NAME"
