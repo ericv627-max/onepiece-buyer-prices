@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { Product } from "@/lib/types";
+import { BRAND } from "@/lib/brand";
 import { ChangeTag, Money, useCurrency } from "./money";
 import { productHref } from "./product-views";
 
@@ -30,7 +31,7 @@ export function SetAnalytics({ products, since }: { products: Product[]; since: 
       </div>
 
       {tab === "movers" && (moved.length === 0 ? (
-        <p className="state">Market movers need two saved days of prices. VENDR saves one per day, so they appear after the next update.</p>
+        <p className="state">Market movers need two saved days of prices. {BRAND} saves one per day, so they appear after the next update.</p>
       ) : (
         <div className="movers">
           {[["Biggest increases", ups], ["Biggest decreases", downs]].map(([title, items]) => (
@@ -62,11 +63,11 @@ export function SetAnalytics({ products, since }: { products: Product[]; since: 
       )}
 
       {tab === "sales" && (
-        <p className="state">Sales volume isn’t available. The price source (TCGplayer via tcgcsv) gives prices but not individual sales, and VENDR won’t estimate them.</p>
+        <p className="state">Sales volume isn’t available. The price source (TCGplayer via tcgcsv) gives prices but not individual sales, and {BRAND} won’t estimate them.</p>
       )}
 
       {tab === "wish" && (
-        <p className="state">Most wishlisted needs real wishlist counts across everyone using VENDR. It turns on with Google sign-in, which is the next step.</p>
+        <p className="state">Most wishlisted needs real wishlist counts across everyone using {BRAND}. It turns on with Google sign-in, which is the next step.</p>
       )}
     </section>
   );

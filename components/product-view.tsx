@@ -5,6 +5,7 @@ import { useEffect, useMemo } from "react";
 import { useIndex } from "@/lib/use-index";
 import { useHistory } from "@/lib/use-history";
 import { RARITY_NAMES, shortDate } from "@/lib/format";
+import { BRAND } from "@/lib/brand";
 import { ChangeTag, Money, Range } from "./money";
 import { Heart } from "./heart";
 import { PriceChart } from "./price-chart";
@@ -22,7 +23,7 @@ export function ProductView() {
   const history = useHistory(product ? product.id : null);
 
   useEffect(() => {
-    if (product) document.title = `${product.name}${product.number && !product.name.includes(product.number) ? ` (${product.number})` : ""} · VENDR`;
+    if (product) document.title = `${product.name}${product.number && !product.name.includes(product.number) ? ` (${product.number})` : ""} · ${BRAND}`;
   }, [product]);
 
   if (error) return <div className="state error" role="alert"><b>Prices couldn’t load.</b> {error}. Check your connection and refresh.</div>;

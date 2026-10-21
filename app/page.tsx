@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { BUYER_MAX_PERCENT, BUYER_MIN_PERCENT, getProducts, getSets } from "@/lib/data";
+import { BRAND } from "@/lib/brand";
 
-// Home is laid out like a landing page: a line of news, the slogan, what VENDR does, two ways in, and
+// Home is laid out like a landing page: a line of news, the slogan, what the site does, two ways in, and
 // three numbers. Searching lives on the Products page (and the search button in the top bar).
 export default function Home() {
   const products = getProducts().length;
@@ -19,13 +20,13 @@ export default function Home() {
       </Link>
       <h1 id="home-title" className="hero-title">Price it. Stack it. <em>Flip it.</em></h1>
       <p className="hero-sub">
-        VENDR shows what a buyer should offer for every One Piece card and sealed product, priced daily from TCGplayer.
+        {BRAND} shows what a buyer should offer for every One Piece card and sealed product, priced daily from TCGplayer.
       </p>
       <div className="hero-actions">
         <Link href="/products" className="btn primary lg">Browse products</Link>
         <Link href="/portfolio" className="btn white lg">Open my portfolio</Link>
       </div>
-      <ul className="hero-stats" aria-label="VENDR at a glance">
+      <ul className="hero-stats" aria-label={`${BRAND} at a glance`}>
         <li><b>{products.toLocaleString("en-US")}</b><span>Products tracked</span></li>
         <li><b>{sets}</b><span>Sets and releases</span></li>
         <li><b>{low}–{high}%</b><span>Typical buyer offer</span></li>

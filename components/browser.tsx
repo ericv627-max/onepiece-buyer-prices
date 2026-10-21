@@ -7,6 +7,7 @@ import { applyFilters, matches, matchSets, noMatchHelp, sortProducts, SORTS, wor
 import { RARITY_NAMES, coinFor, shortDate } from "@/lib/format";
 import { rememberSearch, RECENT_KEY, useStored, write } from "@/lib/store";
 import type { Product, SetInfo } from "@/lib/types";
+import { BRAND } from "@/lib/brand";
 import { useCurrency } from "./money";
 import { ProductCard, ProductList } from "./product-views";
 import { SearchInput } from "./search-input";
@@ -136,7 +137,7 @@ export function Browser({ mode, scope }: { mode: Mode; scope?: SetInfo }) {
           {mode === "set" && (
             <button type="button" className="chip scope" aria-pressed={wholeSite}
               onClick={() => setParams({ scope: wholeSite ? null : "all" })}>
-              {wholeSite ? `Back to ${scope!.name} only` : "Search all of VENDR instead"}
+              {wholeSite ? `Back to ${scope!.name} only` : `Search all of ${BRAND} instead`}
             </button>
           )}
         </div>

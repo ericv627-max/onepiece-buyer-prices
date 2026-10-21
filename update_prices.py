@@ -435,7 +435,7 @@ def save_exchange_rates():
     If the rates service is down, keep yesterday's file; prices still work in USD.
     """
     try:
-        request = urllib.request.Request(RATES_URL, headers={"User-Agent": "VENDR/1.0"})
+        request = urllib.request.Request(RATES_URL, headers={"User-Agent": "HOLOMARK/1.0"})
         with urllib.request.urlopen(request, timeout=30) as response:
             data = json.loads(response.read().decode("utf-8"))
         rates = {"base": "USD", "date": data["date"], "rates": data["rates"]}

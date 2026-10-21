@@ -15,7 +15,7 @@ export type Lot = {
 };
 
 // The portfolio is a log of changes, each stamped with when it was recorded in
-// VENDR. Replaying the log up to a moment gives the holdings at that moment, which
+// the app. Replaying the log up to a moment gives the holdings at that moment, which
 // is what makes the value graph honest when quantities change.
 export type PortfolioEvent =
   | { at: string; type: "add"; lot: Lot }

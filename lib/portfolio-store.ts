@@ -4,6 +4,7 @@
 // value graph can replay the holdings of any past day.
 import { EMPTY_PORTFOLIO, validateLot, type Lot, type PortfolioData, type PortfolioEvent } from "./portfolio";
 import { readStored, useStored, write } from "./store";
+import { BRAND } from "./brand";
 
 export const PORTFOLIO_KEY = "vendr.portfolio.v1";
 const MAX_EVENTS = 20000;
@@ -41,15 +42,15 @@ export const removeLot = (lotId: string) => append({ at: nowIso(), type: "remove
 
 // ---------- Backup and restore ----------
 export function exportPortfolio(): string {
-  return JSON.stringify({ app: "VENDR", exported: nowIso(), ...load() }, null, 2);
+  return JSON.stringify({ app: BRAND, exported: nowIso(), ...load() }, null, 2);
 }
 
 // Checks every part of a file before replacing anything.
 export function importPortfolio(text: string): { ok: true; events: number } | { ok: false; error: string } {
   let raw: unknown;
-  try { raw = JSON.parse(text); } catch { return { ok: false, error: "That file isn't a VENDR backup (it isn't valid JSON)." }; }
+  try { raw = JSON.parse(text); } catch { return { ok: false, error: `That file isn't a ${BRAND} backup (it isn't valid JSON).` }; }
   const data = raw as Partial<PortfolioData> | null;
-  if (!data || data.version !== 1 || !Array.isArray(data.events)) return { ok: false, error: "That file isn't a VENDR portfolio backup." };
+  if (!data || data.version !== 1 || !Array.isArray(data.events)) return { ok: false, error: `That file isn't a ${BRAND} portfolio backup.` };
   if (data.events.length > MAX_EVENTS) return { ok: false, error: "That backup is too large." };
 
   const events: PortfolioEvent[] = [];

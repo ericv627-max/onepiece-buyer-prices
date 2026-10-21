@@ -1,4 +1,4 @@
-# VENDR
+# HOLOMARK
 
 **Price it. Stack it. Flip it.**
 
@@ -14,7 +14,7 @@ keep a wishlist, and run a portfolio of what you own.
 
 | Page | What it does |
 |---|---|
-| Home | Big search with the rotating card hint, category chips (cards, sets, sealed), recent searches |
+| Home | Landing page: the slogan, what the site does, two ways in (Products and Portfolio) and three headline numbers. Search is the button in the top bar |
 | Products | Grid or list, sort, filters (set, language, product type, rarity, price). Everything stays in the address bar |
 | Product (`/product?id=...`) | One page for every card and sealed product: prices, price history chart, other printings, wishlist, add to portfolio |
 | Sets and set pages | Every release, newest first, with scoped search and set analytics |
@@ -30,8 +30,8 @@ Wishlist and portfolio are saved in the browser until accounts exist (Google sig
 
 Limits worth knowing:
 
-- **English only, mostly.** The category is the English game. It also lists a few Japanese-version items (the anniversary sets), which VENDR labels as Japanese. Full Japanese card prices need another source.
-- **No sales data.** tcgcsv gives prices, not individual sales, so there is no sales volume and VENDR doesn't estimate any.
+- **English only, mostly.** The category is the English game. It also lists a few Japanese-version items (the anniversary sets), which HOLOMARK labels as Japanese. Full Japanese card prices need another source.
+- **No sales data.** tcgcsv gives prices, not individual sales, so there is no sales volume and HOLOMARK doesn't estimate any.
 - **History starts on Oct 20, 2026.** tcgcsv withdrew its price archive, so earlier days can't be rebuilt. Charts fill in one point per day.
 
 ## How it works
@@ -65,9 +65,11 @@ You can run **Nightly price update** by hand from the Actions tab on any branch.
 - `update_prices.py`: downloads prices; names sealed product types and languages
 - `lib/portfolio.ts` + `lib/portfolio.test.ts`: portfolio maths, tested
 - `lib/data.ts`: build-time data layer (computed once per build)
+- `lib/brand.ts`: the site's name, in one place. Saved data keeps the old `vendr.` key prefix in the browser on purpose, so a rename never empties anyone's wishlist or portfolio
+- `components/logo.tsx`: the logo, drawn as vector paths (Outfit Bold letters, with the M as a rising price line). It is artwork, so a rename means redrawing it. `app/icon.svg` is the matching tab icon
 - `components/`, `app/`: the pages
 - `app/globals.css`, `app/portfolio.css`: the design system (tokens at the top: colours, the one accent, corner radius, glass)
-- `components/flow.tsx`: the plasma that moves behind the whole site, drawn with WebGL. It takes its colours from the tokens, stops for reduced motion, and falls back to a still glow where WebGL isn't available
+- `components/flow.tsx`: the arch of light behind the whole site, drawn with WebGL. It barely moves, takes its colours from the tokens, stops for reduced motion, and falls back to a still glow where WebGL isn't available
 
 ### Changing the buyer percentages
 

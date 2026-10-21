@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { fromCents, holdingsChangedBetween, rangeSeries, RANGES, type PortfolioEvent, type Range, type SeriesPoint } from "@/lib/portfolio";
 import { shortDate } from "@/lib/format";
+import { BRAND } from "@/lib/brand";
 import { useCurrency } from "./money";
 
 // The portfolio's value on each day there are saved prices. Only real days are
@@ -45,7 +46,7 @@ export function ValueChart({ series, events, loading, error, trackingSince }: {
     return (
       <div className="state panel compact-state">
         <b>The value graph starts with the next daily price update.</b>
-        <p className="help">VENDR records your holdings from {trackingSince ? shortDate(trackingSince) : "today"} and values them with each day’s saved prices. Earlier days can’t be rebuilt, so none are drawn.</p>
+        <p className="help">{BRAND} records your holdings from {trackingSince ? shortDate(trackingSince) : "today"} and values them with each day’s saved prices. Earlier days can’t be rebuilt, so none are drawn.</p>
       </div>
     );
   }

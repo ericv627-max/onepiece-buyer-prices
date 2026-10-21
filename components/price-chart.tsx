@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import type { PricePoint } from "@/lib/types";
 import { shortDate } from "@/lib/format";
+import { BRAND } from "@/lib/brand";
 import { useCurrency } from "./money";
 
 const RANGES = [["7D", 7], ["1M", 31], ["3M", 92], ["6M", 183], ["MAX", Infinity]] as const;
@@ -73,7 +74,7 @@ export function PriceChart({ points, firstDay }: { points: PricePoint[]; firstDa
       )}
       <p className="chart-note">
         {points.length < 2
-          ? `VENDR started saving daily prices on ${shortDate(firstDay)}. The line fills in one point per day from there; older history isn't available.`
+          ? `${BRAND} started saving daily prices on ${shortDate(firstDay)}. The line fills in one point per day from there; older history isn't available.`
           : `${points.length} saved days. Prices are saved once a day, after TCGplayer's daily update.`}
       </p>
     </div>

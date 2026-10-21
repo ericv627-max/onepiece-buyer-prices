@@ -9,6 +9,7 @@ import { breakdown, fromCents, groupHoldings, lotsAt, mostValuable, totals, valu
 import { matches, words } from "@/lib/search";
 import { shortDate } from "@/lib/format";
 import type { PricePoint, Product } from "@/lib/types";
+import { BRAND } from "@/lib/brand";
 import { AddProductDialog, ManageHoldingDialog } from "./portfolio-dialogs";
 import { Donut } from "./donut";
 import { HoldingCard, HoldingList } from "./holding-views";
@@ -296,9 +297,9 @@ function TrendingTab({ products, owned, since }: { products: Product[]; owned: M
   const downs = movers.filter(p => p.change!.percent < 0).sort((a, b) => a.change!.percent - b.change!.percent).slice(0, 10);
   return (
     <>
-      <p className="help">These are market-wide moves for every product on VENDR, not your portfolio’s performance. A product you own is tagged, but it only counts toward your own change if you hold it.</p>
+      <p className="help">These are market-wide moves for every product on {BRAND}, not your portfolio’s performance. A product you own is tagged, but it only counts toward your own change if you hold it.</p>
       {movers.length === 0 ? (
-        <div className="state panel compact-state">Market movers need two saved days of prices. VENDR saves one a day, so they appear after the next update.</div>
+        <div className="state panel compact-state">Market movers need two saved days of prices. {BRAND} saves one a day, so they appear after the next update.</div>
       ) : (
         <div className="movers">
           {([["Biggest price increases", ups], ["Biggest price decreases", downs]] as const).map(([title, items]) => (
@@ -321,8 +322,8 @@ function TrendingTab({ products, owned, since }: { products: Product[]; owned: M
         </div>
       )}
       <div className="unavailable-grid">
-        <section className="panel"><h3>Highest recorded sales activity</h3><p className="help">Not available. VENDR’s price source (TCGplayer via tcgcsv) gives prices but not individual sales, and VENDR doesn’t estimate them.</p></section>
-        <section className="panel"><h3>Popular cards and sealed products</h3><p className="help">This will use real wishlist counts from everyone using VENDR, which needs accounts. It turns on with Google sign-in.</p></section>
+        <section className="panel"><h3>Highest recorded sales activity</h3><p className="help">Not available. {BRAND}’s price source (TCGplayer via tcgcsv) gives prices but not individual sales, and {BRAND} doesn’t estimate them.</p></section>
+        <section className="panel"><h3>Popular cards and sealed products</h3><p className="help">This will use real wishlist counts from everyone using {BRAND}, which needs accounts. It turns on with Google sign-in.</p></section>
       </div>
     </>
   );
@@ -338,7 +339,7 @@ function BackupControls({ hasData }: { hasData: boolean }) {
     const url = URL.createObjectURL(new Blob([exportPortfolio()], { type: "application/json" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = `vendr-portfolio-${localToday()}.json`;
+    a.download = `${BRAND.toLowerCase()}-portfolio-${localToday()}.json`;
     a.click();
     URL.revokeObjectURL(url);
     setMessage({ ok: true, text: "Backup downloaded." });

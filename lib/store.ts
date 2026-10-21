@@ -14,7 +14,7 @@ function read<T>(key: string, fallback: T): T {
   try {
     return JSON.parse(raw) as T;
   } catch {
-    // The earlier one-page VENDR saved plain text (a name, a currency code).
+    // The earlier one-page site (then called VENDR) saved plain text (a name, a currency code).
     // Keep those instead of silently resetting them.
     return typeof fallback === "string" ? (raw as unknown as T) : fallback;
   }

@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { CURRENCIES, coinFor, shortDate } from "@/lib/format";
 import { CURRENCY_KEY, NAME_KEY, useStored, write } from "@/lib/store";
 import { useIndex } from "@/lib/use-index";
+import { BRAND } from "@/lib/brand";
+import { Logo } from "./logo";
 import { useCurrency } from "./money";
 
 const NO_SEEN: string[] = [];
@@ -43,9 +45,8 @@ export function Nav() {
   return (
     <header className="topbar">
       <div className="wrap topbar-inner">
-        <Link href="/" className="logo" aria-label="VENDR home">
-          <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 14l10-9 10 9" /><path d="M6 25l10-9 10 9" /></svg>
-          <b>VENDR</b>
+        <Link href="/" className="logo" aria-label={`${BRAND} home`}>
+          <Logo />
         </Link>
         <nav aria-label="Main" className={`main-nav${mobileOpen ? " open" : ""}`}>
           {LINKS.map(([href, label]) => (

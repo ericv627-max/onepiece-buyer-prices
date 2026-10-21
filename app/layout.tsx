@@ -5,11 +5,12 @@ import { Flow } from "@/components/flow";
 import { Nav } from "@/components/nav";
 import { RatesProvider } from "@/components/money";
 import { getMeta } from "@/lib/data";
+import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: { default: "VENDR · Price it. Stack it. Flip it.", template: "%s · VENDR" },
+  title: { default: `${BRAND} · Price it. Stack it. Flip it.`, template: `%s · ${BRAND}` },
   description: "One Piece Card Game prices, sets and sealed products, updated daily from TCGplayer.",
-  openGraph: { title: "VENDR · Price it. Stack it. Flip it.", description: "One Piece Card Game prices, sets and sealed products, updated daily." },
+  openGraph: { title: `${BRAND} · Price it. Stack it. Flip it.`, description: "One Piece Card Game prices, sets and sealed products, updated daily." },
 };
 
 export const viewport: Viewport = { themeColor: "#030a14", width: "device-width", initialScale: 1 };
@@ -30,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Nav />
           <main id="main" className="wrap">{children}</main>
           <footer className="wrap footer">
-            VENDR · Prices from TCGplayer via tcgcsv.com, updated daily
+            {BRAND} · Prices from TCGplayer via tcgcsv.com, updated daily
             {meta.updatedAt ? ` (last ${meta.updatedAt.replace("T", " ").slice(0, 16)} UTC)` : ""}. Mostly English-language products. Not affiliated with TCGplayer or Bandai.
           </footer>
         </RatesProvider>
