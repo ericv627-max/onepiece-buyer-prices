@@ -1,11 +1,14 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { monthDay } from "@/lib/format";
 
 // TCGplayer's picture server doesn't have every size, and has nothing at all
 // for products it hasn't finished listing. If the larger picture is missing,
 // try the standard one; if that fails too, show a plain placeholder instead of
 // a broken-image icon.
-export function ProductImage({ src, alt = "", className }: { src: string; alt?: string; className?: string }) {
+// drops: the release date of a set that hasn't come out yet. Its products usually have no picture yet, so instead of
+// "No image" they get a tile that says the set is awaiting its drop and when.
+export function ProductImage({ src, alt = "", className, drops }: { src: string; alt?: string; className?: string; drops?: string | null }) {
   const [url, setUrl] = useState(src);
   const [failed, setFailed] = useState(false);
   const ref = useRef<HTMLImageElement>(null);
@@ -23,6 +26,10 @@ export function ProductImage({ src, alt = "", className }: { src: string; alt?: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
 
-  if (!src || failed) return <span className="noimg">No image</span>;
+  if (!src || failed) {
+    return drops
+      ? <span className="awaiting"><b>Awaiting drop</b><small>{monthDay(drops)}</small></span>
+      : <span className="noimg">No image</span>;
+  }
   return <img ref={ref} src={url} alt={alt} className={className} loading="lazy" onError={fail} />;
 }

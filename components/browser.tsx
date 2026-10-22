@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useIndex } from "@/lib/use-index";
 import { applyFilters, matches, matchSets, noMatchHelp, sortProducts, SORTS, words, type Filters, type SortKey } from "@/lib/search";
-import { RARITY_NAMES, coinFor, shortDate } from "@/lib/format";
+import { RARITY_NAMES, coinFor, isUpcoming, monthDay, shortDate } from "@/lib/format";
 import { rememberSearch, RECENT_KEY, useStored, write } from "@/lib/store";
 import type { Product, SetInfo } from "@/lib/types";
 import { BRAND } from "@/lib/brand";
@@ -76,7 +76,10 @@ export function Browser({ mode, scope }: { mode: Mode; scope?: SetInfo }) {
   };
 
   const w = words(q);
-  const products = data?.products ?? [];
+  // Products from sets that haven't dropped stay on their set pages (and the Sets page's Coming soon row) until release day.
+  const allProducts = data?.products ?? [];
+  const products = mode === "set" ? allProducts : allProducts.filter(p => !isUpcoming(p.released));
+  const upcomingCount = allProducts.length - products.length;
   const hasChanges = useMemo(() => products.some(p => p.change), [products]);
 
   // Everything the typed search matches, before any filter.
@@ -159,6 +162,7 @@ export function Browser({ mode, scope }: { mode: Mode; scope?: SetInfo }) {
             <p className="count"><b>{results.length.toLocaleString()}</b> {results.length === 1 ? "product" : "products"}
               {w.length ? <> for “{q.trim()}”</> : scoped ? <> in {scope!.name}</> : null}
               {activeFilters ? <> · {activeFilters} filter{activeFilters > 1 ? "s" : ""} <button type="button" className="link-btn" onClick={clearFilters}>Clear</button></> : null}
+              {upcomingCount > 0 && !scoped ? <> · <Link href="/sets#coming-soon" className="link-btn">{upcomingCount} awaiting drop</Link></> : null}
             </p>
             {mode !== "home" && (
               <button type="button" className="btn filters-toggle" aria-expanded={filtersOpen} aria-controls="filters"
@@ -268,7 +272,9 @@ export function SetGrid({ sets }: { sets: SetInfo[] }) {
     <div className="set-grid">
       {sets.map(s => (
         <Link key={s.slug} href={`/sets/${s.slug}`} className="set-tile">
-          {s.image ? <ProductImage src={s.image} /> : <span className="noimg">No art yet</span>}
+          {s.image ? <ProductImage src={s.image} drops={isUpcoming(s.released) ? s.released : null} /> : isUpcoming(s.released)
+            ? <span className="awaiting"><b>Awaiting drop</b><small>{monthDay(s.released!)}</small></span>
+            : <span className="noimg">No art yet</span>}
           <span>
             <b>{s.name}</b>
             <small>{s.code ? `${s.code} · ` : ""}{s.released ? shortDate(s.released) : "Date unknown"}</small>

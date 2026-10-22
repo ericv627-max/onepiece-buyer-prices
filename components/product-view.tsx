@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { useIndex } from "@/lib/use-index";
 import { useHistory } from "@/lib/use-history";
-import { RARITY_NAMES, shortDate } from "@/lib/format";
+import { RARITY_NAMES, isUpcoming, shortDate } from "@/lib/format";
 import { BRAND } from "@/lib/brand";
 import { ChangeTag, Money, Range } from "./money";
 import { Heart } from "./heart";
@@ -62,8 +62,8 @@ export function ProductView() {
         <Link href="/products">Products</Link> <span aria-hidden="true">/</span> <Link href={`/sets/${p.setSlug}`}>{p.set}</Link>
       </nav>
       <div className="product-top">
-        <div className="product-img panel">
-          <ProductImage src={p.image} alt={p.name} />
+        <div className={`product-img panel${p.kind === "sealed" ? " sealed" : ""}`}>
+          <ProductImage src={p.image} alt={p.name} drops={isUpcoming(p.released) ? p.released : null} />
         </div>
         <div className="product-info">
           <h1>{p.name}</h1>

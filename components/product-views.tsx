@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
-import { RARITY_NAMES } from "@/lib/format";
+import { RARITY_NAMES, isUpcoming, monthDay } from "@/lib/format";
 import { ChangeTag, Money, Range } from "./money";
 import { Heart } from "./heart";
 import { ProductImage } from "./product-image";
@@ -22,8 +22,9 @@ export function ProductCard({ p }: { p: Product }) {
   return (
     <article className="pcard">
       <Link href={productHref(p)} className="pcard-link">
-        <Tilt className="pcard-img">
-          <ProductImage src={p.image} />
+        <Tilt className={`pcard-img${p.kind === "sealed" ? " sealed" : ""}`}>
+          <ProductImage src={p.image} drops={isUpcoming(p.released) ? p.released : null} />
+          {isUpcoming(p.released) && <span className="drop-chip">Drops {monthDay(p.released!)}</span>}
           <span className="lang" title={p.language}>{p.language === "English" ? "EN" : p.language.slice(0, 2).toUpperCase()}</span>
         </Tilt>
         <span className="pname">{p.name}</span>
@@ -46,8 +47,8 @@ export function ProductCard({ p }: { p: Product }) {
 export function ProductRow({ p }: { p: Product }) {
   return (
     <div className="prow" role="row">
-      <Link href={productHref(p)} className="prow-img" role="cell" tabIndex={-1} aria-hidden="true">
-        <ProductImage src={p.image} />
+      <Link href={productHref(p)} className={`prow-img${p.kind === "sealed" ? " sealed" : ""}`} role="cell" tabIndex={-1} aria-hidden="true">
+        <ProductImage src={p.image} drops={isUpcoming(p.released) ? p.released : null} />
       </Link>
       <div className="prow-name" role="cell">
         <Link href={productHref(p)} className="pname">{p.name}</Link>

@@ -21,6 +21,17 @@ export function coinFor(code: string): string {
   return mark || code.slice(-1);
 }
 
+// Sets that haven't released yet. Compared as YYYY-MM-DD strings against today's date in UTC, which matches how
+// release dates are stored; a set flips to released on its release day.
+export function isUpcoming(released: string | null | undefined): boolean {
+  return !!released && released > new Date().toISOString().slice(0, 10);
+}
+
+// "Nov 20": for drop dates, where the year is obvious.
+export function monthDay(iso: string): string {
+  return new Date(iso + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 export function shortDate(iso: string | null): string {
   if (!iso) return "Unknown";
   return new Date(iso + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });

@@ -26,7 +26,10 @@ export default async function SetPage({ params }: Props) {
   const meta = getMeta();
   const products = getSetProducts(set.name);
   const today = new Date().toISOString().slice(0, 10);
-  const status = !set.released ? "Release date unknown" : set.released > today ? `Upcoming · releases ${shortDate(set.released)}` : `Released ${shortDate(set.released)}`;
+  const daysLeft = set.released ? Math.round((Date.parse(set.released) - Date.parse(today)) / 86400000) : 0;
+  const status = !set.released ? "Release date unknown" : set.released > today
+    ? `Awaiting drop · releases ${shortDate(set.released)}, in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`
+    : `Released ${shortDate(set.released)}`;
 
   return (
     <>
