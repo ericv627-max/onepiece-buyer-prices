@@ -26,7 +26,9 @@ import json
 import re
 import sqlite3
 import time
+import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -47,6 +49,14 @@ DB_PATH = Path(__file__).parent / "prices.db"
 #                                  the up/down arrows and price charts
 DATA_DIR = Path(__file__).parent / "data"
 HISTORY_DIR = DATA_DIR / "history"
+
+# Which products have a picture, and where it comes from. See check_pictures().
+PICTURES_FILE = DATA_DIR / "pictures.json"
+# Bandai's official card list has the base art for every card number.
+OFFICIAL_ART = "https://en.onepiece-cardgame.com/images/cardlist/card/{}.png"
+# Printings that reuse a card's base art, so the official picture is the right one.
+# (Alternate arts, manga and SP versions look different, so they never borrow it.)
+SAME_ART = re.compile(r"^(Regular|.*\bDeck\b.*)$", re.IGNORECASE)
 
 # Be polite to the free service: wait a little between requests.
 SECONDS_BETWEEN_REQUESTS = 0.2
@@ -374,6 +384,75 @@ def save_rows(rows, snapshot_time):
     db.close()
 
 
+def picture_exists(url):
+    """True if the picture server has something at url. Retries on network errors, not on 403/404."""
+    for attempt in range(4):
+        try:
+            request = urllib.request.Request(url, method="HEAD", headers={"User-Agent": "HOLOMARK/1.0"})
+            with urllib.request.urlopen(request, timeout=20) as response:
+                return 200 <= response.status < 300
+        except urllib.error.HTTPError as error:
+            if error.code in (403, 404):
+                return False
+        except Exception:
+            pass
+        time.sleep(0.8 * (attempt + 1))
+    return False
+
+
+def check_pictures(rows):
+    """
+    Make sure every product's picture link works, and fill in what's missing.
+
+    TCGplayer has no picture yet for some products (new promos, sets that haven't
+    released). For those, cards whose printing reuses the base art get Bandai's
+    official picture; anything still missing gets an empty image_url, which the
+    site shows as "No image" or, for an unreleased set, "Awaiting drop".
+
+    data/pictures.json remembers each product's result. A product whose TCGplayer
+    picture worked once is never checked again; the rest are re-checked every night,
+    so a picture appears as soon as TCGplayer adds it.
+    """
+    try:
+        known = json.loads(PICTURES_FILE.read_text()).get("products", {})
+    except (OSError, ValueError):
+        known = {}
+
+    by_product = {}
+    for row in rows:
+        by_product.setdefault(str(row["product_id"]), row)
+
+    def status_for(product_id):
+        if known.get(product_id) == "tcg":
+            return "tcg"
+        row = by_product[product_id]
+        url = row["image_url"]
+        if url and (picture_exists(url) or picture_exists(url.replace("_400w", "_200w"))):
+            return "tcg"
+        number = row["card_number"]
+        if number and SAME_ART.match(row["printing"] or ""):
+            official = OFFICIAL_ART.format(number)
+            if picture_exists(official):
+                return "official:" + official
+        return "none"
+
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        statuses = dict(zip(by_product, pool.map(status_for, by_product)))
+
+    for row in rows:
+        status = statuses[str(row["product_id"])]
+        if status == "none":
+            row["image_url"] = ""
+        elif status.startswith("official:"):
+            row["image_url"] = status[len("official:"):]
+
+    lines = ",\n".join(f"{json.dumps(k)}:{json.dumps(statuses[k])}" for k in sorted(statuses, key=int))
+    PICTURES_FILE.write_text('{"products":{\n' + lines + "\n}}\n")
+    values = list(statuses.values())
+    print(f"Pictures: {values.count('tcg')} from TCGplayer, "
+          f"{sum(v.startswith('official:') for v in values)} official art, {values.count('none')} missing.")
+
+
 def card_id(row):
     """One id per price row: the TCGplayer product plus Normal/Foil, e.g. "512345-Foil"."""
     return f"{row['product_id']}-{row['sub_type']}"
@@ -471,6 +550,7 @@ def main():
     print("Downloading One Piece prices from tcgcsv.com ...")
     groups, rows, snapshot_time = download_prices()
     print(f"These prices were published by tcgcsv at {snapshot_time.isoformat(timespec='seconds')}.")
+    check_pictures(rows)
     save_rows(rows, snapshot_time)
     save_data_files(rows, snapshot_time)
     save_sets(groups)
