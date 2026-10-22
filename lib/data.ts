@@ -70,6 +70,8 @@ function buildAll() {
     : null;
 
   const released = new Map(setsFile.sets.map(s => [s.name, s.released]));
+  // Sealed photos with the white background cut out (scripts/cutout-sealed.mjs), served from public/sealed/.
+  const cutouts = new Set(readJson<{ cutouts: number[] }>(path.join(DATA, "cutouts.json"), { cutouts: [] }).cutouts);
 
   const products: Product[] = catalog.cards.map(row => {
     const before = previous?.prices[row.id]?.[1] ?? null;
@@ -88,7 +90,7 @@ function buildAll() {
       printing: row.printing,
       foil: row.sub_type === "Foil",
       language: row.language ?? "English",
-      image: row.image_url,
+      image: kind === "sealed" && cutouts.has(row.product_id) ? `/sealed/${row.product_id}.webp` : row.image_url,
       url: row.tcgplayer_url,
       low: row.low_price,
       market: now,

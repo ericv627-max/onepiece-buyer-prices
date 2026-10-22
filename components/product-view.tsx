@@ -62,7 +62,7 @@ export function ProductView() {
         <Link href="/products">Products</Link> <span aria-hidden="true">/</span> <Link href={`/sets/${p.setSlug}`}>{p.set}</Link>
       </nav>
       <div className="product-top">
-        <div className={`product-img panel${p.kind === "sealed" ? " sealed" : ""}`}>
+        <div className={`product-img panel${p.kind === "sealed" ? (p.image.startsWith("/sealed/") ? " sealed cutout" : " sealed") : ""}`}>
           <ProductImage src={p.image} alt={p.name} drops={isUpcoming(p.released) ? p.released : null} />
         </div>
         <div className="product-info">

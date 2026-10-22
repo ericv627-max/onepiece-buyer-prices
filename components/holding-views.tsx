@@ -17,7 +17,7 @@ export function HoldingCard({ v, onManage }: { v: Valued; onManage: (productId: 
     <article className="pcard holding">
       {p ? (
         <Link href={productHref(p)} className="pcard-link">
-          <Tilt className={`pcard-img${p.kind === "sealed" ? " sealed" : ""}`}><ProductImage src={p.image} /><span className="qty-badge" aria-label={`${v.qty} owned`}>×{v.qty}</span></Tilt>
+          <Tilt className={`pcard-img${p.kind === "sealed" ? (p.image.startsWith("/sealed/") ? " sealed cutout" : " sealed") : ""}`}><ProductImage src={p.image} /><span className="qty-badge" aria-label={`${v.qty} owned`}>×{v.qty}</span></Tilt>
           <span className="pname">{p.name}</span>
         </Link>
       ) : (
@@ -59,7 +59,7 @@ export function HoldingList({ items, onManage, ranked }: { items: Valued[]; onMa
         return (
           <div className="prow" role="row" key={v.productId}>
             {ranked ? <span className="rank" role="cell">{i + 1}</span> : (
-              <span className={`prow-img${p?.kind === "sealed" ? " sealed" : ""}`} role="cell" aria-hidden="true">{p && <ProductImage src={p.image} />}</span>
+              <span className={`prow-img${p?.kind === "sealed" ? (p.image.startsWith("/sealed/") ? " sealed cutout" : " sealed") : ""}`} role="cell" aria-hidden="true">{p && <ProductImage src={p.image} />}</span>
             )}
             <div className="prow-name" role="cell">
               {p ? <Link href={productHref(p)} className="pname">{p.name}</Link> : <span className="pname">Product {v.productId}</span>}

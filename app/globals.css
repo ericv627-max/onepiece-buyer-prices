@@ -489,6 +489,11 @@ legend { font-family: var(--display); font-weight: 600; font-size: 1rem; letter-
 .pcard-img.sealed, .prow-img.sealed, .product-img.sealed { background: radial-gradient(ellipse 80% 70% at 50% 42%, var(--plate) 45%, var(--plate-edge) 100%); }
 .pcard-img.sealed img, .prow-img.sealed img, .product-img.sealed img { mix-blend-mode: multiply; padding: 5%; box-sizing: border-box; }
 .pcard-img.sealed .noimg, .prow-img.sealed .noimg { color: #5b6b80; }
+/* Most sealed photos have their white background cut out (public/sealed/). Those sit straight on the dark tile,
+   lifted by a soft shadow, like the cards do; only the full-bleed photos keep the plate above. */
+.pcard-img.cutout, .prow-img.cutout, .product-img.cutout { background: rgba(255, 255, 255, 0.04); }
+.pcard-img.cutout img, .prow-img.cutout img, .product-img.cutout img { mix-blend-mode: normal; padding: 8%; filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.55)); }
+.set-tile img[src^="/sealed/"] { object-fit: contain; padding: 3px; }
 .pcard-img .noimg, .prow-img .noimg { padding: 6px; text-align: center; }
 .product-img .noimg, .set-head .noimg { display: grid; place-items: center; aspect-ratio: 5 / 7; }
 .state.compact { padding: 14px 4px 4px; text-align: left; }

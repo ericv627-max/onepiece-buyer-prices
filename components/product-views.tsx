@@ -22,7 +22,7 @@ export function ProductCard({ p }: { p: Product }) {
   return (
     <article className="pcard">
       <Link href={productHref(p)} className="pcard-link">
-        <Tilt className={`pcard-img${p.kind === "sealed" ? " sealed" : ""}`}>
+        <Tilt className={`pcard-img${p.kind === "sealed" ? (p.image.startsWith("/sealed/") ? " sealed cutout" : " sealed") : ""}`}>
           <ProductImage src={p.image} drops={isUpcoming(p.released) ? p.released : null} />
           {isUpcoming(p.released) && <span className="drop-chip">Drops {monthDay(p.released!)}</span>}
           <span className="lang" title={p.language}>{p.language === "English" ? "EN" : p.language.slice(0, 2).toUpperCase()}</span>
@@ -47,7 +47,7 @@ export function ProductCard({ p }: { p: Product }) {
 export function ProductRow({ p }: { p: Product }) {
   return (
     <div className="prow" role="row">
-      <Link href={productHref(p)} className={`prow-img${p.kind === "sealed" ? " sealed" : ""}`} role="cell" tabIndex={-1} aria-hidden="true">
+      <Link href={productHref(p)} className={`prow-img${p.kind === "sealed" ? (p.image.startsWith("/sealed/") ? " sealed cutout" : " sealed") : ""}`} role="cell" tabIndex={-1} aria-hidden="true">
         <ProductImage src={p.image} drops={isUpcoming(p.released) ? p.released : null} />
       </Link>
       <div className="prow-name" role="cell">
