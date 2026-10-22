@@ -5,6 +5,7 @@ import { RARITY_NAMES } from "@/lib/format";
 import { ChangeTag, Money, Range } from "./money";
 import { Heart } from "./heart";
 import { ProductImage } from "./product-image";
+import { Tilt } from "./tilt";
 
 export function productHref(p: Product) {
   return `/product?id=${encodeURIComponent(p.id)}`;
@@ -21,10 +22,10 @@ export function ProductCard({ p }: { p: Product }) {
   return (
     <article className="pcard">
       <Link href={productHref(p)} className="pcard-link">
-        <div className="pcard-img">
+        <Tilt className="pcard-img">
           <ProductImage src={p.image} />
           <span className="lang" title={p.language}>{p.language === "English" ? "EN" : p.language.slice(0, 2).toUpperCase()}</span>
-        </div>
+        </Tilt>
         <span className="pname">{p.name}</span>
       </Link>
       <Link href={`/sets/${p.setSlug}`} className="pset">{p.set}</Link>

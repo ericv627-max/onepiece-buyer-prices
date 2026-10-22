@@ -3,6 +3,7 @@ import Link from "next/link";
 import { fromCents, type Valued } from "@/lib/portfolio";
 import { ChangeTag, Money } from "./money";
 import { ProductImage } from "./product-image";
+import { Tilt } from "./tilt";
 import { productHref } from "./product-views";
 
 function statusText(v: Valued) {
@@ -16,7 +17,7 @@ export function HoldingCard({ v, onManage }: { v: Valued; onManage: (productId: 
     <article className="pcard holding">
       {p ? (
         <Link href={productHref(p)} className="pcard-link">
-          <div className="pcard-img"><ProductImage src={p.image} /><span className="qty-badge" aria-label={`${v.qty} owned`}>×{v.qty}</span></div>
+          <Tilt className="pcard-img"><ProductImage src={p.image} /><span className="qty-badge" aria-label={`${v.qty} owned`}>×{v.qty}</span></Tilt>
           <span className="pname">{p.name}</span>
         </Link>
       ) : (

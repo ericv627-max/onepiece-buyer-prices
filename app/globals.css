@@ -286,6 +286,17 @@ legend { font-family: var(--display); font-weight: 600; font-size: 1rem; letter-
    Chrome mis-paints a clipped aspect-ratio box (its backdrop turned up a card-height too high). */
 .pcard-img { position: relative; aspect-ratio: 5 / 7; background: rgba(255, 255, 255, 0.04); display: grid; place-items: center; }
 .pcard-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border-radius: inherit; }
+/* Card pictures lean toward the cursor (components/tilt.tsx). The sheen is a soft light where the cursor is,
+   plus a faint azure band that slides across, like foil catching a lamp. No overflow clipping here: Chrome
+   mis-paints a clipped aspect-ratio box over the animated background. */
+.pcard-img.tilt { transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--lift, 1)); transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.pcard-img.tilting { --lift: 1.04; transition: transform 0.1s linear; }
+.pcard-img .sheen { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 0.35s;
+  background:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.32), transparent 48%),
+    linear-gradient(115deg, transparent 30%, rgba(var(--accent-rgb), 0.22) 44%, rgba(255, 255, 255, 0.16) 50%, rgba(var(--accent-rgb), 0.22) 56%, transparent 70%);
+  background-size: 100% 100%, 250% 250%; background-position: center, var(--mx, 50%) var(--my, 50%); mix-blend-mode: screen; }
+.pcard-img.tilting .sheen { opacity: 1; }
 .lang { position: absolute; top: 8px; right: 8px; padding: 1px 8px; font-size: 0.64rem; font-weight: 700; background: rgba(3, 10, 20, 0.7); border: 1px solid var(--line); }
 .noimg { font-size: 0.76rem; color: var(--faint); }
 .pname { font-family: var(--display); font-weight: 600; font-size: 0.97rem; line-height: 1.25; letter-spacing: -0.01em; text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
@@ -439,6 +450,8 @@ legend { font-family: var(--display); font-weight: 600; font-size: 1rem; letter-
 }
 @media (prefers-reduced-motion: reduce) {
   .pcard, .set-tile, .btn, .heart { transition: none; }
+  .pcard-img.tilt { transform: none; transition: none; }
+  .pcard-img .sheen { display: none; }
 }
 /* People who ask their system for less transparency get solid surfaces instead of glass. */
 @media (prefers-reduced-transparency: reduce) {
