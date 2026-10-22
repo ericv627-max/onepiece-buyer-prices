@@ -29,7 +29,10 @@ const HARD = 244;   // a pixel this bright on every channel, and grey, is backgr
 const SOFT = 226;   // between SOFT and HARD at the boundary: partly transparent
 
 async function cutout(id, url) {
-  const res = await fetch(url, { headers: { 'User-Agent': 'HOLOMARK/1.0' } });
+  // TCGplayer keeps a 1000px version of most photos; the 400px one looks soft once the background is gone.
+  const big = url.replace(/_(?:200|400)w\.jpg$/, '_in_1000x1000.jpg');
+  let res = await fetch(big, { headers: { 'User-Agent': 'HOLOMARK/1.0' } });
+  if (!res.ok) res = await fetch(url, { headers: { 'User-Agent': 'HOLOMARK/1.0' } });
   if (!res.ok) return `download ${res.status}`;
   const { data, info } = await sharp(Buffer.from(await res.arrayBuffer())).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const { width: w, height: h } = info;
@@ -58,11 +61,42 @@ async function cutout(id, url) {
     if (v > SOFT) data[i * 4 + 3] = Math.round(255 * (HARD - v) / (HARD - SOFT));
   }
 
+  // What's left can be several separate pieces. Case photos carry a quantity badge ("x12": a dark disc beside the
+  // box), and the edges leave specks. Drop specks, and drop any piece that is a small dark disc; keep everything
+  // else, since some products really are several pieces (a deck set, a gift collection).
+  const label = new Int32Array(w * h).fill(-1);
+  const pieces = [];
+  for (let s = 0; s < w * h; s++) {
+    if (label[s] !== -1 || data[s * 4 + 3] === 0) continue;
+    const id2 = pieces.length, members = [s];
+    label[s] = id2;
+    let minX = w, minY = h, maxX = 0, maxY = 0, lum = 0;
+    for (let k = 0; k < members.length; k++) {
+      const i = members[k], x = i % w, y = (i / w) | 0;
+      if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y;
+      lum += (data[i * 4] + data[i * 4 + 1] + data[i * 4 + 2]) / 3;
+      for (const j of [i - 1, i + 1, i - w, i + w, i - w - 1, i - w + 1, i + w - 1, i + w + 1]) {
+        if (j < 0 || j >= w * h || Math.abs((j % w) - x) > 1) continue;
+        if (label[j] === -1 && data[j * 4 + 3] > 0) { label[j] = id2; members.push(j); }
+      }
+    }
+    const bw = maxX - minX + 1, bh = maxY - minY + 1;
+    pieces.push({ members, area: members.length, dark: lum / members.length < 70, round: Math.abs(bw / bh - 1) < 0.2 && Math.abs(members.length / (bw * bh) - Math.PI / 4) < 0.12 });
+  }
+  const largest = Math.max(...pieces.map(p => p.area));
+  let badges = 0;
+  for (const p of pieces) {
+    const speck = p.area < largest * 0.004;
+    const badge = p.dark && p.round && p.area < largest * 0.25;
+    if (speck || badge) { for (const i of p.members) data[i * 4 + 3] = 0; if (badge) badges++; }
+  }
+
   await sharp(data, { raw: { width: w, height: h, channels: 4 } })
     .trim({ threshold: 1 })
+    .resize({ width: 640, height: 640, fit: 'inside', withoutEnlargement: true })
     .webp({ quality: 84, alphaQuality: 90 })
     .toFile(path.join(OUT, `${id}.webp`));
-  return 'ok';
+  return badges ? `ok, badge removed` : 'ok';
 }
 
 const todo = [...sealed].filter(([id]) => all || !have.has(id));
@@ -72,11 +106,12 @@ async function worker() {
   while (i < todo.length) {
     const [id, url] = todo[i++];
     try { results[id] = await cutout(id, url); } catch (e) { results[id] = 'error ' + e.message; }
-    if (results[id] === 'ok') have.add(id); else have.delete(id);
+    if (results[id].startsWith('ok')) have.add(id); else have.delete(id);
   }
 }
 await Promise.all(Array.from({ length: 4 }, worker));
 writeFileSync(LIST, JSON.stringify({ cutouts: [...have].sort((a, b) => a - b) }) + '\n');
-const fails = Object.entries(results).filter(([, r]) => r !== 'ok');
+const fails = Object.entries(results).filter(([, r]) => !r.startsWith('ok'));
+console.log(`quantity badges removed: ${Object.values(results).filter(r => r === 'ok, badge removed').length}`);
 console.log(`cutouts: ${todo.length - fails.length} made, ${fails.length} kept the plate; ${have.size} total`);
 for (const [id, r] of fails.slice(0, 15)) console.log('  ', id, r);
