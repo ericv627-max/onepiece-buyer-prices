@@ -9,7 +9,7 @@ import { getMeta } from "@/lib/data";
 import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: { default: `${BRAND} · Price it. Stack it. Flip it.`, template: `%s · ${BRAND}` },
+  title: { default: `${BRAND} · One Piece card prices`, template: `%s · ${BRAND}` },
   description: "One Piece Card Game prices, sets and sealed products, updated daily from TCGplayer.",
   openGraph: { title: `${BRAND} · Price it. Stack it. Flip it.`, description: "One Piece Card Game prices, sets and sealed products, updated daily." },
 };

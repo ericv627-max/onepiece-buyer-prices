@@ -82,7 +82,11 @@ function TopActions() {
     { id: `prices:${data.updated}`, href: "/products", icon: "●", title: "Prices updated", text: `${data.products.length.toLocaleString()} products · ${data.updated}` },
   ];
   const seen = useStored<string[]>("vendr.seenNotes", NO_SEEN);
-  const unread = notes.filter(n => !seen.includes(n.id)).length;
+  // A first visit has nothing "new" yet: everything that exists now counts as already seen,
+  // so the badge only ever counts things that appeared since the visitor was last here.
+  const firstVisit = seen === NO_SEEN;
+  useEffect(() => { if (firstVisit && data) write("vendr.seenNotes", notes.map(n => n.id)); }, [firstVisit, data]); // eslint-disable-line react-hooks/exhaustive-deps
+  const unread = firstVisit ? 0 : notes.filter(n => !seen.includes(n.id)).length;
 
   return (
     <div className="top-actions" ref={ref}>
