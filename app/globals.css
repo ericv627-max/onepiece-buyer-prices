@@ -386,6 +386,7 @@ legend { font-family: var(--display); font-weight: 600; font-size: 1rem; letter-
 .related h2 { font-size: 1.8rem; }
 .related .help { margin: 6px 0 16px; }
 
+/* ---------- Portfolio value graph (components/value-chart.tsx) ---------- */
 .chart { padding: 26px 0 0; border-top: 1px solid var(--line); }
 .chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; margin-bottom: 10px; }
 .chart-value { font-family: var(--display); font-size: 2.3rem; font-weight: 500; letter-spacing: -0.04em; line-height: 1.1; }
@@ -401,6 +402,74 @@ legend { font-family: var(--display); font-weight: 600; font-size: 1rem; letter-
 .chart-svg .dot.on { fill: var(--bg); stroke: var(--accent-text); stroke-width: 3; }
 .chart-svg .tick { fill: var(--muted); font-size: 12px; }
 .chart-note { margin: 10px 0 0; font-size: 0.82rem; color: var(--muted); }
+/* ---------- Price chart (components/price-chart.tsx) ----------
+   Market price as a glowing line, the lowest listing as a quiet dashed line, and between them the buyer zone: the
+   band a buyer should offer, which is what this site is for. A beam of light follows the pointer, and the readout
+   above it shows that day. Days before saving began are hatched, never filled in. */
+.pchart { padding: 26px 0 0; border-top: 1px solid var(--line); }
+.pchart-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 8px; }
+.pchart-date { display: inline-block; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-text); margin-bottom: 8px; }
+.pchart-figures { display: flex; flex-wrap: wrap; gap: 10px 34px; }
+.pchart .fig { display: grid; gap: 2px; }
+.pchart .fig span { font-size: 0.78rem; color: var(--muted); }
+.pchart .fig b { font-family: var(--display); font-weight: 500; letter-spacing: -0.035em; font-size: 1.5rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.pchart .fig.market b { font-size: 2.4rem; }
+.pchart .fig.zone b { color: var(--accent-text); }
+.pchart .fig i { font-style: normal; font-size: 0.82rem; }
+.pchart .fig i.up { color: var(--up); } .pchart .fig i.down { color: var(--down); } .pchart .fig i.flat { color: var(--muted); }
+
+/* The range switch: a glass track with a lit thumb that slides to the chosen range. */
+.pchart-ranges { position: relative; display: grid; grid-template-columns: repeat(5, 52px); padding: 4px; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background: rgba(var(--bg-rgb), 0.5); backdrop-filter: var(--glass-blur); }
+.pchart-thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: 52px; border-radius: var(--radius-pill); background: var(--blue-button); box-shadow: var(--glow); transform: translateX(calc(var(--i, 0) * 52px)); transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.pchart-ranges button { position: relative; height: 34px; border: 0; background: none; cursor: pointer; font-family: var(--display); font-size: 0.85rem; font-weight: 600; color: var(--muted); border-radius: var(--radius-pill); }
+.pchart-ranges button:hover { color: var(--fg); }
+.pchart-ranges button[aria-pressed="true"] { color: var(--accent-ink); }
+
+.pchart-box { width: 100%; }
+.pchart-svg { display: block; max-width: 100%; touch-action: pan-y; cursor: crosshair; outline: none; border-radius: var(--radius-sm); }
+.pchart-svg:focus-visible { box-shadow: 0 0 0 2px var(--accent-text); }
+.pchart-svg text { font-family: var(--body); font-size: 12px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.pchart-svg .grid line { stroke: var(--line); stroke-dasharray: 2 6; }
+.pchart-svg .hatch-line { stroke: rgba(255, 255, 255, 0.07); stroke-width: 3; }
+.pchart-svg .unrecorded text { fill: var(--faint); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; }
+.pchart-svg .since { stroke: rgba(var(--accent-rgb), 0.55); stroke-dasharray: 3 4; }
+.pchart-svg .unrecorded .since-label { fill: var(--accent-text); text-transform: none; letter-spacing: 0; font-size: 12px; }
+.pchart-svg .zone { stroke: rgba(var(--accent-rgb), 0.35); stroke-width: 1; }
+.pchart-svg .low-line { fill: none; stroke: var(--link); stroke-width: 1.5; stroke-dasharray: 5 5; opacity: 0.8; }
+.pchart-svg .market-line { fill: none; stroke: var(--accent-text); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.9)) drop-shadow(0 0 18px rgba(var(--accent-rgb), 0.45));
+  stroke-dasharray: 1; stroke-dashoffset: 1; animation: pchart-draw 1.1s cubic-bezier(0.3, 0.7, 0.2, 1) forwards; }
+.pchart-svg .area { animation: pchart-fade 1.1s ease forwards; opacity: 0; }
+@keyframes pchart-draw { to { stroke-dashoffset: 0; } }
+@keyframes pchart-fade { to { opacity: 1; } }
+.pchart-svg .node { fill: var(--bg); stroke: var(--accent-text); stroke-width: 2; }
+.pchart-svg .beam { transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; }
+.pchart-svg .beam-glow { fill: rgba(var(--accent-rgb), 0.1); }
+.pchart-svg .beam-line { stroke: var(--accent-text); stroke-width: 1; opacity: 0.7; }
+.pchart-svg .beam-zone { stroke: var(--accent-text); stroke-width: 6; stroke-linecap: round; opacity: 0.55; }
+.pchart-svg .beam-low { fill: var(--bg); stroke: var(--link); stroke-width: 2; }
+.pchart-svg .beam-halo { fill: rgba(var(--accent-rgb), 0.28); animation: pchart-pulse 2.4s ease-in-out infinite; }
+.pchart-svg .beam-dot { fill: var(--fg); stroke: var(--accent-text); stroke-width: 3; }
+@keyframes pchart-pulse { 50% { r: 15px; opacity: 0.45; } }
+.pchart-svg .beam-date { fill: var(--fg); font-weight: 600; }
+.pchart-svg .one-day { fill: var(--accent-text); font-size: 12px; }
+.pchart-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 10px 0 0; font-size: 0.8rem; color: var(--muted); }
+.pchart-note .key { display: inline-block; width: 18px; height: 0; border-top: 3px solid var(--accent-text); margin-left: 6px; }
+.pchart-note .key:first-child { margin-left: 0; }
+.pchart-note .key.low { border-top: 2px dashed var(--link); }
+.pchart-note .key.zone { height: 10px; border: 1px solid rgba(var(--accent-rgb), 0.5); background: rgba(var(--accent-rgb), 0.3); }
+@media (max-width: 760px) {
+  .pchart .fig.market b { font-size: 1.9rem; }
+  .pchart .fig b { font-size: 1.2rem; }
+  .pchart-ranges { grid-template-columns: repeat(5, minmax(0, 1fr)); width: 100%; }
+  .pchart-thumb { width: calc((100% - 8px) / 5); transform: translateX(calc(var(--i, 0) * 100%)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pchart-svg .market-line { animation: none; stroke-dashoffset: 0; }
+  .pchart-svg .area { animation: none; opacity: 1; }
+  .pchart-svg .beam-halo { animation: none; }
+  .pchart-svg .beam, .pchart-thumb { transition: none; }
+}
 
 .footer { padding: 30px 0 40px; font-size: 0.8rem; color: var(--muted); }
 

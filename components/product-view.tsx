@@ -98,7 +98,7 @@ export function ProductView() {
       ) : history.points === null ? (
         <div className="state panel" aria-busy="true">Loading price history…</div>
       ) : (
-        <PriceChart points={history.points} firstDay={history.points[0]?.date ?? data.updated} />
+        <PriceChart points={history.points} firstDay={history.points[0]?.date ?? data.updated} buyer={[data.buyerMinPercent, data.buyerMaxPercent]} />
       )}
 
       {variants.length > 0 && (
