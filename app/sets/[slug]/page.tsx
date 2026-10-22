@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getMeta, getSet, getSetProducts, getSets } from "@/lib/data";
 import { shortDate } from "@/lib/format";
+import { SHOW_SEALED } from "@/lib/brand";
 import { Browser } from "@/components/browser";
 import { SetAnalytics } from "@/components/set-analytics";
 import { ProductImage } from "@/components/product-image";
@@ -39,7 +40,7 @@ export default async function SetPage({ params }: Props) {
         <div>
           <h1>{set.name}</h1>
           <p>{set.code ? <b>{set.code}</b> : null}{set.code ? " · " : ""}{status}</p>
-          <p className="help">{set.cards.toLocaleString()} cards · {set.sealed} sealed products</p>
+          <p className="help">{set.cards.toLocaleString()} cards{SHOW_SEALED ? ` · ${set.sealed} sealed products` : ""}</p>
         </div>
       </header>
       {products.length === 0 ? (

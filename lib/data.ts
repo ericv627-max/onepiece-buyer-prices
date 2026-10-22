@@ -5,6 +5,7 @@
 // pages. (React's cache() only lasts for a single page render, which meant the
 // whole catalog was re-read and re-processed for every page.)
 import fs from "node:fs";
+import { SHOW_SEALED } from "./brand";
 import path from "node:path";
 import { shardOf, type Shard } from "./history";
 import type { Meta, PricePoint, Product, SetInfo } from "./types";
@@ -113,7 +114,7 @@ function buildAll() {
   // so notifications about upcoming sets always have somewhere to go.
   const sets: SetInfo[] = setsFile.sets.map(s => {
     const items = bySet.get(s.name) ?? [];
-    const top = items.filter(p => p.image).sort((a, b) => (b.market ?? 0) - (a.market ?? 0))[0];
+    const top = items.filter(p => p.image && (SHOW_SEALED || p.kind === "card")).sort((a, b) => (b.market ?? 0) - (a.market ?? 0))[0];
     return {
       id: s.id,
       name: s.name,

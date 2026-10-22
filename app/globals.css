@@ -289,14 +289,14 @@ legend { font-family: var(--display); font-weight: 600; font-size: 1rem; letter-
 /* Card pictures lean toward the cursor (components/tilt.tsx). The sheen is a soft light where the cursor is,
    plus a faint azure band that slides across, like foil catching a lamp. No overflow clipping here: Chrome
    mis-paints a clipped aspect-ratio box over the animated background. */
-.pcard-img.tilt { transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--lift, 1)); transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
-.pcard-img.tilting { --lift: 1.04; transition: transform 0.1s linear; }
-.pcard-img .sheen { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 0.35s;
+.tilt { position: relative; transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--lift, 1)); transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.tilting { --lift: 1.04; transition: transform 0.1s linear; }
+.tilt .sheen { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 0.35s;
   background:
     radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.32), transparent 48%),
     linear-gradient(115deg, transparent 30%, rgba(var(--accent-rgb), 0.22) 44%, rgba(255, 255, 255, 0.16) 50%, rgba(var(--accent-rgb), 0.22) 56%, transparent 70%);
   background-size: 100% 100%, 250% 250%; background-position: center, var(--mx, 50%) var(--my, 50%); mix-blend-mode: screen; }
-.pcard-img.tilting .sheen { opacity: 1; }
+.tilting .sheen { opacity: 1; }
 .lang { position: absolute; top: 8px; right: 8px; padding: 1px 8px; font-size: 0.64rem; font-weight: 700; background: rgba(3, 10, 20, 0.7); border: 1px solid var(--line); }
 .noimg { font-size: 0.76rem; color: var(--faint); }
 /* A product or set that hasn't dropped yet: a designed tile instead of "No image", in the brand's blue. */
@@ -463,8 +463,8 @@ legend { font-family: var(--display); font-weight: 600; font-size: 1rem; letter-
 }
 @media (prefers-reduced-motion: reduce) {
   .pcard, .set-tile, .btn, .heart { transition: none; }
-  .pcard-img.tilt { transform: none; transition: none; }
-  .pcard-img .sheen { display: none; }
+  .tilt { transform: none; transition: none; }
+  .tilt .sheen { display: none; }
 }
 /* People who ask their system for less transparency get solid surfaces instead of glass. */
 @media (prefers-reduced-transparency: reduce) {
@@ -485,7 +485,7 @@ legend { font-family: var(--display); font-weight: 600; font-size: 1rem; letter-
    stands on the dark tile like a real object: a contact shadow on the "floor" under it, a soft cast shadow, and it
    sits in front of the tile in 3D, so when the tile tilts toward the cursor the box moves with parallax and lifts.
    Photos without a cutout are full-bleed shots of the product itself and are shown as they are. */
-.pcard-img.tilt { transform-style: preserve-3d; }
+.tilt { transform-style: preserve-3d; }
 /* Only cards get a card-shaped frame. A sealed product has no frame at all: the box stands on the page by itself,
    with nothing behind it but a faint glow where its shadow falls. */
 .pcard-img.sealed, .prow-img.sealed { background: transparent; }

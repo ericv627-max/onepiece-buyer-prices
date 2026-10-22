@@ -11,6 +11,7 @@ import { Heart } from "./heart";
 import { PriceChart } from "./price-chart";
 import { ProductCard } from "./product-views";
 import { ProductImage } from "./product-image";
+import { Tilt } from "./tilt";
 import { AddToPortfolio } from "./add-to-portfolio";
 
 // One page for every card and sealed product: /product?id=<product id>.
@@ -62,9 +63,9 @@ export function ProductView() {
         <Link href="/products">Products</Link> <span aria-hidden="true">/</span> <Link href={`/sets/${p.setSlug}`}>{p.set}</Link>
       </nav>
       <div className="product-top">
-        <div className={`product-img panel${p.kind === "sealed" ? (p.image.startsWith("/sealed/") ? " sealed cutout" : " sealed") : ""}`}>
+        <Tilt className={`product-img panel${p.kind === "sealed" ? (p.image.startsWith("/sealed/") ? " sealed cutout" : " sealed") : ""}`}>
           <ProductImage src={p.image} alt={p.name} drops={isUpcoming(p.released) ? p.released : null} />
-        </div>
+        </Tilt>
         <div className="product-info">
           <h1>{p.name}</h1>
           <Link href={`/sets/${p.setSlug}`} className="set-link">{p.set}{set?.code ? ` · ${set.code}` : ""}</Link>

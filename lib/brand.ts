@@ -6,3 +6,8 @@
 // and lib/portfolio-store.ts) on purpose: renaming the keys would silently empty
 // everyone's saved wishlist and portfolio.
 export const BRAND = "HOLOMARK";
+
+// Sealed products (boxes, packs, decks) are hidden from browsing for now, to be reworked later: Products, search,
+// set pages and the home numbers show cards only. They stay in the data, so their product pages, and any already
+// in a wishlist or portfolio, keep working. Set this to true to bring them back everywhere.
+export const SHOW_SEALED = false;

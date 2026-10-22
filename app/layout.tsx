@@ -10,8 +10,8 @@ import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = {
   title: { default: `${BRAND} · One Piece card prices`, template: `%s · ${BRAND}` },
-  description: "One Piece Card Game prices, sets and sealed products, updated daily from TCGplayer.",
-  openGraph: { title: `${BRAND} · Price it. Stack it. Flip it.`, description: "One Piece Card Game prices, sets and sealed products, updated daily." },
+  description: "One Piece Card Game card prices and what a buyer should offer, updated daily from TCGplayer.",
+  openGraph: { title: `${BRAND} · Price it. Stack it. Flip it.`, description: "One Piece Card Game card prices, updated daily." },
 };
 
 export const viewport: Viewport = { themeColor: "#030a14", width: "device-width", initialScale: 1 };

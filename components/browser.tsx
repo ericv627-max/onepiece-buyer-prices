@@ -7,7 +7,7 @@ import { applyFilters, matches, matchSets, noMatchHelp, sortProducts, SORTS, wor
 import { RARITY_NAMES, coinFor, isUpcoming, monthDay, shortDate } from "@/lib/format";
 import { rememberSearch, RECENT_KEY, useStored, write } from "@/lib/store";
 import type { Product, SetInfo } from "@/lib/types";
-import { BRAND } from "@/lib/brand";
+import { BRAND, SHOW_SEALED } from "@/lib/brand";
 import { useCurrency } from "./money";
 import { ProductCard, ProductList } from "./product-views";
 import { SearchInput } from "./search-input";
@@ -77,7 +77,7 @@ export function Browser({ mode, scope }: { mode: Mode; scope?: SetInfo }) {
 
   const w = words(q);
   // Products from sets that haven't dropped stay on their set pages (and the Sets page's Coming soon row) until release day.
-  const allProducts = data?.products ?? [];
+  const allProducts = (data?.products ?? []).filter(p => SHOW_SEALED || p.kind !== "sealed");
   const products = mode === "set" ? allProducts : allProducts.filter(p => !isUpcoming(p.released));
   const upcomingCount = allProducts.length - products.length;
   const hasChanges = useMemo(() => products.some(p => p.change), [products]);
@@ -123,9 +123,10 @@ export function Browser({ mode, scope }: { mode: Mode; scope?: SetInfo }) {
     return <div className="state error" role="alert"><b>Prices couldn’t load.</b> {error}. Check your connection and refresh.</div>;
   }
 
-  const categories: [Category, string][] = mode === "set"
-    ? [["all", "All"], ["card", "Cards"], ["sealed", "Sealed"]]
-    : [["all", "All"], ["card", "Cards"], ["sets", "Sets"], ["sealed", "Sealed products"]];
+  const categories: [Category, string][] = (mode === "set"
+    ? [["all", "All"], ["card", "Cards"], ["sealed", "Sealed"]] as [Category, string][]
+    : [["all", "All"], ["card", "Cards"], ["sets", "Sets"], ["sealed", "Sealed products"]] as [Category, string][])
+    .filter(([c]) => SHOW_SEALED || c !== "sealed");
 
   return (
     <div className={`browser ${mode}`}>
@@ -278,7 +279,7 @@ export function SetGrid({ sets }: { sets: SetInfo[] }) {
           <span>
             <b>{s.name}</b>
             <small>{s.code ? `${s.code} · ` : ""}{s.released ? shortDate(s.released) : "Date unknown"}</small>
-            <small>{s.cards + s.sealed ? `${s.cards.toLocaleString()} cards · ${s.sealed} sealed` : "No products listed yet"}</small>
+            <small>{(SHOW_SEALED ? s.cards + s.sealed : s.cards) ? `${s.cards.toLocaleString()} cards${SHOW_SEALED ? ` · ${s.sealed} sealed` : ""}` : "No cards listed yet"}</small>
           </span>
         </Link>
       ))}

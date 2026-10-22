@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BUYER_MAX_PERCENT, BUYER_MIN_PERCENT, getMeta, getProducts } from "@/lib/data";
-import { BRAND } from "@/lib/brand";
+import { BRAND, SHOW_SEALED } from "@/lib/brand";
 import { shortDate } from "@/lib/format";
 
 const usd = (n: number) => n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: n >= 100 ? 0 : 2 });
@@ -8,7 +8,7 @@ const usd = (n: number) => n.toLocaleString("en-US", { style: "currency", curren
 // Home is laid out like a landing page, but it has to say at first glance what the site is (One Piece card prices),
 // show one real price, and let a returning visitor search straight away.
 export default function Home() {
-  const products = getProducts();
+  const products = getProducts().filter(p => SHOW_SEALED || p.kind !== "sealed");
   const meta = getMeta();
   const updatedDay = meta.updated ? new Date(meta.updated + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }) : "daily";
   const low = Math.round(BUYER_MIN_PERCENT * 100);
@@ -30,11 +30,11 @@ export default function Home() {
       </Link>
       <h1 id="home-title" className="hero-title">Price it. Stack it. <em>Flip it.</em></h1>
       <p className="hero-sub">
-        What a buyer should offer for every One Piece card and sealed product, priced daily from TCGplayer.
+        What a buyer should offer for every One Piece card{SHOW_SEALED ? " and sealed product" : ""}, priced daily from TCGplayer.
       </p>
       <div className="hero-actions">
         <form action="/products" method="get" className="hero-search" role="search">
-          <label htmlFor="hero-q" className="sr-only">Search cards and sealed products</label>
+          <label htmlFor="hero-q" className="sr-only">Search cards</label>
           <input id="hero-q" name="q" type="search" placeholder="Search a card, like Luffy OP05" autoComplete="off" />
           <button type="submit" className="btn primary lg">Search prices</button>
         </form>
@@ -47,7 +47,7 @@ export default function Home() {
         </Link>
       )}
       <ul className="hero-stats" aria-label={`${BRAND} at a glance`}>
-        <li><b>{products.length.toLocaleString("en-US")}</b><span>Cards and sealed products</span></li>
+        <li><b>{products.length.toLocaleString("en-US")}</b><span>{SHOW_SEALED ? "Cards and sealed products" : "Cards tracked"}</span></li>
         <li><b>Daily</b><span>Last update {shortDate(meta.updated)}</span></li>
         <li><b>{low}–{high}%</b><span>of the lowest TCGplayer listing</span></li>
       </ul>
