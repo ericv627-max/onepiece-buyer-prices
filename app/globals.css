@@ -16,10 +16,7 @@
 :root {
   /* Surfaces: deep navy-black, with glass as a faint lift rather than a block */
   --bg: #030a14;
-  --bg-rgb: 3, 10, 20;
-  /* The light "studio plate" behind sealed product photos, which come on a white background. */
-  --plate: #ffffff;
-  --plate-edge: #d9e1ec;                      /* for scrims and text halos over the arch */
+  --bg-rgb: 3, 10, 20;                      /* for scrims and text halos over the arch */
   --panel: rgba(255, 255, 255, 0.04);
   --panel-solid: #081120;                   /* for the few things that must be opaque */
   --panel-hover: rgba(255, 255, 255, 0.075);
@@ -484,15 +481,28 @@ legend { font-family: var(--display); font-weight: 600; font-size: 1rem; letter-
   .top-actions { margin-left: 0; justify-self: end; }
 }
 
-/* Sealed products: TCGplayer's box photos sit on white. Instead of a white rectangle floating in a dark tile, the
-   whole frame becomes a light plate and the photo is multiplied into it, so its white edges disappear. */
-.pcard-img.sealed, .prow-img.sealed, .product-img.sealed { background: radial-gradient(ellipse 80% 70% at 50% 42%, var(--plate) 45%, var(--plate-edge) 100%); }
-.pcard-img.sealed img, .prow-img.sealed img, .product-img.sealed img { mix-blend-mode: multiply; padding: 5%; box-sizing: border-box; }
-.pcard-img.sealed .noimg, .prow-img.sealed .noimg { color: #5b6b80; }
-/* Most sealed photos have their white background cut out (public/sealed/). Those sit straight on the dark tile,
-   lifted by a soft shadow, like the cards do; only the full-bleed photos keep the plate above. */
-.pcard-img.cutout, .prow-img.cutout, .product-img.cutout { background: rgba(255, 255, 255, 0.04); }
-.pcard-img.cutout img, .prow-img.cutout img, .product-img.cutout img { mix-blend-mode: normal; padding: 8%; filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.55)); }
+/* Sealed products. Their white studio background is cut out (public/sealed/, scripts/cutout-sealed.mjs), so the box
+   stands on the dark tile like a real object: a contact shadow on the "floor" under it, a soft cast shadow, and it
+   sits in front of the tile in 3D, so when the tile tilts toward the cursor the box moves with parallax and lifts.
+   Photos without a cutout are full-bleed shots of the product itself and are shown as they are. */
+.pcard-img.tilt { transform-style: preserve-3d; }
+/* Only cards get a card-shaped frame. A sealed product has no frame at all: the box stands on the page by itself,
+   with nothing behind it but a faint glow where its shadow falls. */
+.pcard-img.sealed, .prow-img.sealed { background: transparent; }
+.pcard-img.cutout { background: radial-gradient(ellipse 62% 20% at 50% 87%, rgba(var(--accent-rgb), 0.16), transparent 72%); }
+.pcard-img.cutout::after { content: ""; position: absolute; left: 17%; right: 17%; bottom: 8%; height: 8%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.35) 45%, transparent 72%); filter: blur(3px);
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.5s; }
+.pcard-img.cutout img { z-index: 1; box-sizing: border-box; padding: 8% 7% 14%; transform: translateZ(26px);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6)) drop-shadow(0 10px 12px rgba(0, 0, 0, 0.45));
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.5s; }
+.pcard-img.cutout.tilting img { transform: translateZ(70px) translateY(-4%);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 28px 22px rgba(0, 0, 0, 0.55)); }
+.pcard-img.cutout.tilting::after { transform: scale(0.8); opacity: 0.65; }
+.pcard-img.cutout .sheen { display: none; }   /* the sheen is a rectangle; on a free-standing box it would light the empty tile */
+.product-img.cutout { background: radial-gradient(ellipse 60% 18% at 50% 90%, rgba(var(--accent-rgb), 0.16), transparent 72%); border-color: transparent; box-shadow: none; }
+.product-img.cutout img { box-sizing: border-box; padding: 6% 6% 12%; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.55)) drop-shadow(0 30px 28px rgba(0, 0, 0, 0.6)); }
+.prow-img.cutout img { filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.55)); }
 .set-tile img[src^="/sealed/"] { object-fit: contain; padding: 3px; }
 .pcard-img .noimg, .prow-img .noimg { padding: 6px; text-align: center; }
 .product-img .noimg, .set-head .noimg { display: grid; place-items: center; aspect-ratio: 5 / 7; }

@@ -17,6 +17,9 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(root, 'public', 'sealed');
 const LIST = path.join(root, 'data', 'cutouts.json');
 const all = process.argv.includes('--all');
+const arg = name => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
+const minShare = Number(arg('--min-share') ?? 0.04);       // less background than this: treat as a full-bleed photo
+const only = arg('--only')?.split(',').map(Number);           // limit a run to these product ids
 
 const catalog = JSON.parse(readFileSync(path.join(root, 'data', 'catalog.json'), 'utf8')).cards;
 const sealed = new Map();
@@ -51,7 +54,7 @@ async function cutout(id, url) {
   let removed = 0;
   for (let i = 0; i < w * h; i++) if (bg[i]) { data[i * 4 + 3] = 0; removed++; }
   const share = removed / (w * h);
-  if (share < 0.04 || share > 0.9) return `rejected (${Math.round(share * 100)}% background)`;
+  if (share < minShare || share > 0.9) return `rejected (${Math.round(share * 100)}% background)`;
 
   // soften the boundary: product pixels next to the background that are nearly white fade out a little
   for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
@@ -99,7 +102,7 @@ async function cutout(id, url) {
   return badges ? `ok, badge removed` : 'ok';
 }
 
-const todo = [...sealed].filter(([id]) => all || !have.has(id));
+const todo = [...sealed].filter(([id]) => (only ? only.includes(id) : all || !have.has(id)));
 let i = 0;
 const results = {};
 async function worker() {
