@@ -21,6 +21,12 @@ export function coinFor(code: string): string {
   return mark || code.slice(-1);
 }
 
+// Starter decks, ultra decks and the other deck sets (ST-xx, SD01, LT-01, demo decks). There's no market for the decks
+// themselves, so they're left off the set listings; their single cards stay in Products and on their set pages.
+export function isDeckSet(s: { name: string; code?: string | null }): boolean {
+  return /\bdeck\b/i.test(s.name) || /^(ST|SD|LT)-?\d/i.test(s.code ?? "");
+}
+
 // Sets that haven't released yet. Compared as YYYY-MM-DD strings against today's date in UTC, which matches how
 // release dates are stored; a set flips to released on its release day.
 export function isUpcoming(released: string | null | undefined): boolean {

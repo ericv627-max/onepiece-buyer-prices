@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import type { SetInfo } from "@/lib/types";
-import { isUpcoming } from "@/lib/format";
+import { isDeckSet, isUpcoming } from "@/lib/format";
 import { SetGrid } from "./browser";
 import { SearchInput } from "./search-input";
 
@@ -9,7 +9,7 @@ export function SetsList({ sets }: { sets: SetInfo[] }) {
   const [q, setQ] = useState("");
   const [order, setOrder] = useState<"newest" | "oldest">("newest");
   const w = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const matching = sets.filter(s => w.every(word => `${s.name} ${s.code}`.toLowerCase().includes(word)));
+  const matching = sets.filter(s => !isDeckSet(s)).filter(s => w.every(word => `${s.name} ${s.code}`.toLowerCase().includes(word)));
   // Sets that haven't dropped get their own row at the top, soonest first.
   const soon = matching.filter(s => isUpcoming(s.released)).sort((a, b) => a.released!.localeCompare(b.released!));
   const shown = matching

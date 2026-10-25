@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { CURRENCIES, coinFor, shortDate } from "@/lib/format";
+import { CURRENCIES, coinFor, isDeckSet, shortDate } from "@/lib/format";
 import { CURRENCY_KEY, NAME_KEY, useStored, write } from "@/lib/store";
 import { useIndex } from "@/lib/use-index";
 import { BRAND } from "@/lib/brand";
@@ -74,10 +74,10 @@ function TopActions() {
   const today = new Date().toISOString().slice(0, 10);
   const days = (iso: string) => Math.round((Date.parse(iso) - Date.parse(today)) / 86400000);
   const notes = !data ? [] : [
-    ...data.sets.filter(s => s.released && s.released > today).sort((a, b) => a.released!.localeCompare(b.released!))
+    ...data.sets.filter(s => !isDeckSet(s) && s.released && s.released > today).sort((a, b) => a.released!.localeCompare(b.released!))
       .map(s => ({ id: `soon:${s.slug}`, href: `/sets/${s.slug}`, icon: "◆", title: `${s.name}${s.code ? ` (${s.code})` : ""} releases ${shortDate(s.released)}`,
         text: `Upcoming · in ${days(s.released!)} days · ${s.cards + s.sealed ? "products already listed" : "no products listed yet"}` })),
-    ...data.sets.filter(s => s.released && s.released <= today && days(s.released) > -30)
+    ...data.sets.filter(s => !isDeckSet(s) && s.released && s.released <= today && days(s.released) > -30)
       .map(s => ({ id: `new:${s.slug}`, href: `/sets/${s.slug}`, icon: "★", title: `New set: ${s.name}`, text: `Released ${shortDate(s.released)}` })),
     { id: `prices:${data.updated}`, href: "/products", icon: "●", title: "Prices updated", text: `${data.products.length.toLocaleString()} products · ${data.updated}` },
   ];

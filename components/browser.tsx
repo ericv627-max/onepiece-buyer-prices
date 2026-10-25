@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useIndex } from "@/lib/use-index";
 import { applyFilters, matches, matchSets, noMatchHelp, sortProducts, SORTS, words, type Filters, type SortKey } from "@/lib/search";
-import { RARITY_NAMES, coinFor, isUpcoming, monthDay, shortDate } from "@/lib/format";
+import { RARITY_NAMES, coinFor, isDeckSet, isUpcoming, monthDay, shortDate } from "@/lib/format";
 import { rememberSearch, RECENT_KEY, useStored, write } from "@/lib/store";
 import type { Product, SetInfo } from "@/lib/types";
 import { BRAND, SHOW_SEALED } from "@/lib/brand";
@@ -156,7 +156,7 @@ export function Browser({ mode, scope }: { mode: Mode; scope?: SetInfo }) {
       </div>
 
       {!data ? <div className="state" aria-busy="true">Loading today’s prices…</div> : !showResults ? null : category === "sets" ? (
-        <SetGrid sets={w.length ? setResults : data.sets} />
+        <SetGrid sets={(w.length ? setResults : data.sets).filter(s => !isDeckSet(s))} />
       ) : (
         <>
           <div className="toolbar">
